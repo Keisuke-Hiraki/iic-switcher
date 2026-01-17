@@ -10,9 +10,13 @@ const emptyState = document.getElementById("empty-state");
 const openAllButton = document.getElementById("open-all");
 
 const getPortals = () =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     chrome.storage.sync.get([STORAGE_KEY], (result) => {
-      resolve(result[STORAGE_KEY] ?? []);
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else {
+        resolve(result[STORAGE_KEY] ?? []);
+      }
     });
   });
 
