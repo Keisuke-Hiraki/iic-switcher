@@ -71,7 +71,12 @@ const renderPortals = (portals) => {
     const loginButton = document.createElement("button");
     loginButton.textContent = "ログイン";
     loginButton.addEventListener("click", () => {
-      chrome.tabs.create({ url: portal.url });
+      chrome.tabs.create({ url: portal.url }, (tab) => {
+        if (chrome.runtime.lastError) {
+          console.error('Failed to create tab:', chrome.runtime.lastError.message);
+          // Optionally show user-friendly error message
+        }
+      });
     });
 
     const removeButton = document.createElement("button");
