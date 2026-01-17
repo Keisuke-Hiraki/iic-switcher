@@ -10,15 +10,25 @@ const emptyState = document.getElementById("empty-state");
 const openAllButton = document.getElementById("open-all");
 
 const getPortals = () =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     chrome.storage.sync.get([STORAGE_KEY], (result) => {
-      resolve(result[STORAGE_KEY] ?? []);
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else {
+        resolve(result[STORAGE_KEY] ?? []);
+      }
     });
   });
 
 const savePortals = (portals) =>
-  new Promise((resolve) => {
-    chrome.storage.sync.set({ [STORAGE_KEY]: portals }, resolve);
+  new Promise((resolve, reject) => {
+    chrome.storage.sync.set({ [STORAGE_KEY]: portals }, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else {
+        resolve();
+      }
+    });
   });
 
 const validatePortal = (name, url) => {
@@ -61,7 +71,12 @@ const renderPortals = (portals) => {
     const loginButton = document.createElement("button");
     loginButton.textContent = "ログイン";
     loginButton.addEventListener("click", () => {
-      chrome.tabs.create({ url: portal.url });
+      chrome.tabs.create({ url: portal.url }, (tab) => {
+        if (chrome.runtime.lastError) {
+          console.error('Failed to create tab:', chrome.runtime.lastError.message);
+          // Optionally show user-friendly error message
+        }
+      });
     });
 
     const removeButton = document.createElement("button");
@@ -114,10 +129,23 @@ portalForm.addEventListener("submit", async (event) => {
 });
 
 openAllButton.addEventListener("click", async () => {
-  const portals = await getPortals();
-  portals.forEach((portal) => {
-    chrome.tabs.create({ url: portal.url });
-  });
+  try {
+    const portals = await getPortals();
+    portals.forEach((portal) => {
+      chrome.tabs.create({ url: portal.url }, (tab) => {
+        if (chrome.runtime.lastError) {
+          console.error('Failed to create tab for portal:', portal.name, chrome.runtime.lastError.message);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Failed to retrieve portals:', error.message);
+  }
 });
 
-getPortals().then(renderPortals);
+getPortals()
+  .then(renderPortals)
+  .catch((error) => {
+    console.error('Failed to load portals on startup:', error.message);
+    // Optionally show error state in UI
+  });
