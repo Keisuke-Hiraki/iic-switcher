@@ -129,10 +129,18 @@ portalForm.addEventListener("submit", async (event) => {
 });
 
 openAllButton.addEventListener("click", async () => {
-  const portals = await getPortals();
-  portals.forEach((portal) => {
-    chrome.tabs.create({ url: portal.url });
-  });
+  try {
+    const portals = await getPortals();
+    portals.forEach((portal) => {
+      chrome.tabs.create({ url: portal.url }, (tab) => {
+        if (chrome.runtime.lastError) {
+          console.error('Failed to create tab for portal:', portal.name, chrome.runtime.lastError.message);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Failed to retrieve portals:', error.message);
+  }
 });
 
 getPortals().then(renderPortals);
