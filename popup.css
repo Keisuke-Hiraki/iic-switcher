@@ -1,0 +1,197 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #1f2a44;
+  --muted: #5a647d;
+  --primary: #3c5cff;
+  --primary-dark: #2b47d6;
+  --border: #e3e6ef;
+  --danger: #e35050;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Inter", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-width: 360px;
+}
+
+.app {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header h1 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.header p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+button {
+  background: var(--primary);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+button:hover {
+  background: var(--primary-dark);
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+button.ghost:hover {
+  background: #eef1ff;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 20px rgba(36, 44, 75, 0.06);
+}
+
+.card h2 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+input {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+input:focus {
+  outline: 2px solid #ccd6ff;
+  border-color: #bcc7ff;
+}
+
+#portal-form {
+  display: grid;
+  gap: 8px;
+}
+
+.helper {
+  margin: 0;
+  font-size: 11px;
+  color: var(--danger);
+}
+
+.list-card {
+  display: grid;
+  gap: 8px;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#portal-count {
+  background: #eef1ff;
+  color: var(--primary-dark);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.portal-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.portal-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fafbff;
+}
+
+.portal-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.portal-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.portal-url {
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.portal-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.portal-actions button {
+  flex: 1;
+}
+
+.portal-actions .danger {
+  background: #ffecec;
+  color: var(--danger);
+  border: 1px solid #ffc9c9;
+}
+
+.portal-actions .danger:hover {
+  background: #ffdcdc;
+}
+
+.empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
