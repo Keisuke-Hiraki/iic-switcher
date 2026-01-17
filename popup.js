@@ -143,4 +143,9 @@ openAllButton.addEventListener("click", async () => {
   }
 });
 
-getPortals().then(renderPortals);
+getPortals()
+  .then(renderPortals)
+  .catch((error) => {
+    console.error('Failed to load portals on startup:', error.message);
+    // Optionally show error state in UI
+  });
