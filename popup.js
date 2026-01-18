@@ -35,8 +35,14 @@ const getPortals = () =>
   });
 
 const savePortals = (portals) =>
-  new Promise((resolve) => {
-    chrome.storage.sync.set({ [STORAGE_KEY]: portals }, resolve);
+  new Promise((resolve, reject) => {
+    chrome.storage.sync.set({ [STORAGE_KEY]: portals }, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else {
+        resolve();
+      }
+    });
   });
 
 const validatePortal = (name, url) => {
