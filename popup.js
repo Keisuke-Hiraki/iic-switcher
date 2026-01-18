@@ -244,16 +244,61 @@ const createTab = (url) =>
     });
   });
 
-const waitForTabLoad = (tabId) =>
-  new Promise((resolve) => {
-    const listener = (updatedTabId, info) => {
-      if (updatedTabId === tabId && info.status === "complete") {
-        chrome.tabs.onUpdated.removeListener(listener);
-        resolve();
-      }
-    };
-    chrome.tabs.onUpdated.addListener(listener);
+const tryAutofillUsername = async (tabId, username) => {
+  const [result] = await chrome.scripting.executeScript({
+    target: { tabId },
+    args: [username],
+    func: (usernameValue) =>
+      new Promise((resolve) => {
+        const findInput = () => {
+          const candidates = [
+            'input[type="email"]',
+            'input[type="text"]',
+            'input[name="username"]',
+            'input[id*="user"]',
+            'input[placeholder*="ユーザー"]',
+            'input[aria-label*="ユーザー"]',
+          ];
+          return candidates
+            .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
+            .find((element) => element instanceof HTMLInputElement && !element.disabled);
+        };
+
+        const setValue = () => {
+          const input = findInput();
+          if (!input || input.value) {
+            return false;
+          }
+          input.focus();
+          input.value = usernameValue;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+          input.blur();
+          return true;
+        };
+
+        if (setValue()) {
+          resolve(true);
+          return;
+        }
+
+        const observer = new MutationObserver(() => {
+          if (setValue()) {
+            observer.disconnect();
+            resolve(true);
+          }
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+
+        window.setTimeout(() => {
+          observer.disconnect();
+          resolve(false);
+        }, 5000);
+      }),
   });
+
+  return Boolean(result?.result);
+};
 
 const openPortalWithDefaultUsername = async (url, username) => {
   if (!username) {
@@ -264,36 +309,26 @@ const openPortalWithDefaultUsername = async (url, username) => {
   if (!tab?.id) {
     return;
   }
-  await waitForTabLoad(tab.id);
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      args: [username],
-      func: (usernameValue) => {
-        const candidates = [
-          'input[type="email"]',
-          'input[type="text"]',
-          'input[name="username"]',
-          'input[id*="user"]',
-          'input[placeholder*="ユーザー"]',
-          'input[aria-label*="ユーザー"]',
-        ];
-        const input = candidates
-          .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
-          .find((element) => element instanceof HTMLInputElement && !element.disabled);
-        if (!input || input.value) {
-          return;
-        }
-        input.focus();
-        input.value = usernameValue;
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-        input.blur();
-      },
-    });
-  } catch (error) {
-    console.warn("Failed to set default username.", error);
-  }
+  const handleTabUpdate = async (updatedTabId, info) => {
+    if (updatedTabId !== tab.id || info.status !== "complete") {
+      return;
+    }
+    try {
+      const filled = await tryAutofillUsername(tab.id, username);
+      if (filled) {
+        window.clearTimeout(timeoutId);
+        chrome.tabs.onUpdated.removeListener(handleTabUpdate);
+      }
+    } catch (error) {
+      console.warn("Failed to set default username.", error);
+    }
+  };
+
+  const timeoutId = window.setTimeout(() => {
+    chrome.tabs.onUpdated.removeListener(handleTabUpdate);
+  }, 30000);
+
+  chrome.tabs.onUpdated.addListener(handleTabUpdate);
 };
 
 importButton.addEventListener("click", async () => {
