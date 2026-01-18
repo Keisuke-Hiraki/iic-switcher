@@ -1,5 +1,5 @@
 const STORAGE_KEY = "iic_portals";
-const DEFAULT_USERNAME = "user@example.com";
+const DEFAULT_USERNAME = "";
 
 const portalForm = document.getElementById("portal-form");
 const portalNameInput = document.getElementById("portal-name");
