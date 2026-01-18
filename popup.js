@@ -1,4 +1,5 @@
 const STORAGE_KEY = "iic_portals";
+const DEFAULT_USERNAME = "";
 
 const portalForm = document.getElementById("portal-form");
 const portalNameInput = document.getElementById("portal-name");
@@ -107,8 +108,8 @@ const renderPortals = (portals) => {
 
     const loginButton = document.createElement("button");
     loginButton.textContent = "ログイン";
-    loginButton.addEventListener("click", () => {
-      chrome.tabs.create({ url: portal.url });
+    loginButton.addEventListener("click", async () => {
+      await openPortalWithDefaultUsername(portal.url);
     });
 
     const editButton = document.createElement("button");
@@ -222,6 +223,64 @@ openAllButton.addEventListener("click", async () => {
     chrome.tabs.create({ url: portal.url });
   });
 });
+
+const createTab = (url) =>
+  new Promise((resolve) => {
+    chrome.tabs.create({ url }, (tab) => {
+      resolve(tab);
+    });
+  });
+
+const waitForTabLoad = (tabId) =>
+  new Promise((resolve) => {
+    const listener = (updatedTabId, info) => {
+      if (updatedTabId === tabId && info.status === "complete") {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve();
+      }
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+
+const openPortalWithDefaultUsername = async (url) => {
+  const tab = await createTab(url);
+  if (!tab?.id) {
+    return;
+  }
+  await waitForTabLoad(tab.id);
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      args: [DEFAULT_USERNAME],
+      func: (username) => {
+        if (!username) {
+          return;
+        }
+        const candidates = [
+          'input[type="email"]',
+          'input[type="text"]',
+          'input[name="username"]',
+          'input[id*="user"]',
+          'input[placeholder*="ユーザー"]',
+          'input[aria-label*="ユーザー"]',
+        ];
+        const input = candidates
+          .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
+          .find((element) => element instanceof HTMLInputElement && !element.disabled);
+        if (!input || input.value) {
+          return;
+        }
+        input.focus();
+        input.value = username;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        input.blur();
+      },
+    });
+  } catch (error) {
+    console.warn("Failed to set default username.", error);
+  }
+};
 
 importButton.addEventListener("click", async () => {
   importHelper.textContent = "";
