@@ -328,7 +328,14 @@ const openPortalWithDefaultUsername = async (url, username) => {
       return;
     }
     try {
-      const currentTab = await chrome.tabs.get(tab.id);
+      let currentTab;
+      try {
+        currentTab = await chrome.tabs.get(tab.id);
+      } catch (error) {
+        // Tab was closed or became invalid, stop trying
+        window.clearInterval(intervalId);
+        return;
+      }
       if (!isSigninUrl(currentTab?.url)) {
         return;
       }
