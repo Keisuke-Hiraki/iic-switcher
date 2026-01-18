@@ -90,6 +90,17 @@ const buildConsoleUrl = (portal) => {
   if (!portal.accountId || !portal.roleName) {
     return "";
   }
+  
+  // Validate accountId is exactly 12 digits
+  if (!/^\d{12}$/.test(portal.accountId)) {
+    return "";
+  }
+  
+  // Validate roleName contains only safe characters (alphanumeric, hyphens, underscores)
+  if (!/^[a-zA-Z0-9_-]+$/.test(portal.roleName)) {
+    return "";
+  }
+  
   const url = new URL(portal.url);
   url.pathname = "/start/";
   url.hash = `/console?account_id=${encodeURIComponent(portal.accountId)}&role_name=${encodeURIComponent(
