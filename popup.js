@@ -252,16 +252,27 @@ const tryAutofillUsername = async (tabId, username) => {
       new Promise((resolve) => {
         const findInput = () => {
           const candidates = [
+            'input[autocomplete="username"]',
             'input[type="email"]',
             'input[type="text"]',
             'input[name="username"]',
+            'input[name="userName"]',
+            'input[id="username"]',
+            'input[id="userName"]',
             'input[id*="user"]',
             'input[placeholder*="ユーザー"]',
             'input[aria-label*="ユーザー"]',
+            'input[placeholder*="User"]',
+            'input[aria-label*="User"]',
           ];
           return candidates
             .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
-            .find((element) => element instanceof HTMLInputElement && !element.disabled);
+            .find(
+              (element) =>
+                element instanceof HTMLInputElement &&
+                !element.disabled &&
+                !element.readOnly,
+            );
         };
 
         const setValue = () => {
@@ -270,7 +281,15 @@ const tryAutofillUsername = async (tabId, username) => {
             return false;
           }
           input.focus();
-          input.value = usernameValue;
+          const valueSetter = Object.getOwnPropertyDescriptor(
+            HTMLInputElement.prototype,
+            "value",
+          )?.set;
+          if (valueSetter) {
+            valueSetter.call(input, usernameValue);
+          } else {
+            input.value = usernameValue;
+          }
           input.dispatchEvent(new Event("input", { bubbles: true }));
           input.dispatchEvent(new Event("change", { bubbles: true }));
           input.blur();
