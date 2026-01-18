@@ -57,9 +57,9 @@ const validatePortal = (name, url) => {
     if (parsed.protocol !== "https:") {
       return "URLはhttpsで始まる必要があります。";
     }
-    const pattern = /^d-[a-z0-9]+\.awsapps\.com$/;
+    const pattern = /^[a-z0-9-]+\.awsapps\.com$/;
     if (!pattern.test(parsed.hostname) || parsed.pathname !== "/start") {
-      return "URLはhttps://d-xxxxx.awsapps.com/startの形式で入力してください。";
+      return "URLはhttps://*.awsapps.com/startの形式で入力してください。";
     }
   } catch (error) {
     return "URL形式が正しくありません。";

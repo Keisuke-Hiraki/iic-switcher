@@ -30,7 +30,7 @@ https://d-xxxxx.awsapps.com/start
 ## メモ
 
 - 登録データは Chrome の同期ストレージ（`chrome.storage.sync`）に保存されます。
-- URL は `https://d-xxxxx.awsapps.com/start` の形式のみ登録できます。
+- URL は `https://*.awsapps.com/start` の形式のみ登録できます。
 - 誤った URL を入力するとエラーメッセージが表示されます。
 
 ## 開発
