@@ -59,6 +59,8 @@ body {
 }
 
 .tab-button:hover {
+  background: var(--primary);
+  color: white;
   border-color: var(--primary-dark);
 }
 
@@ -130,6 +132,14 @@ input {
   padding: 8px 10px;
   border-radius: 8px;
   font-size: 12px;
+}
+
+select {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  background: white;
 }
 
 textarea {
@@ -225,9 +235,38 @@ input:focus {
   word-break: break-all;
 }
 
+.portal-details {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.portal-permissions {
+  display: grid;
+  gap: 6px;
+}
+
+.portal-permission-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f0f3ff;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.portal-permission-item button {
+  padding: 4px 8px;
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+
 .portal-actions {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .portal-actions button {
@@ -259,4 +298,55 @@ input:focus {
 .export-block {
   display: grid;
   gap: 8px;
+}
+
+.permission-list-wrapper {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.permission-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.permission-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fafbff;
+}
+
+.permission-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.permission-title {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.permission-subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.permission-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.permission-actions button {
+  flex: 1;
 }

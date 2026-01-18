@@ -23,6 +23,9 @@
         <button class="tab-button" id="tab-add" role="tab" aria-selected="false" type="button">
           追加・編集
         </button>
+        <button class="tab-button" id="tab-permission" role="tab" aria-selected="false" type="button">
+          許可セット
+        </button>
         <button class="tab-button" id="tab-import" role="tab" aria-selected="false" type="button">
           インポート/エクスポート
         </button>
@@ -61,6 +64,41 @@
         </form>
       </section>
 
+      <section class="card" id="panel-permission" role="tabpanel" aria-labelledby="tab-permission" hidden>
+        <h2>許可セットを追加</h2>
+        <form id="permission-form">
+          <label>
+            対象ポータル
+            <select id="permission-portal" name="portal"></select>
+          </label>
+          <label>
+            アカウントID
+            <input
+              id="permission-account"
+              name="accountId"
+              placeholder="例: 123456789012"
+              inputmode="numeric"
+              pattern="[0-9]{12}"
+              required
+            />
+          </label>
+          <label>
+            許可セット名
+            <input id="permission-role" name="roleName" placeholder="例: AdministratorAccess" required />
+          </label>
+          <div class="form-actions">
+            <button type="submit" id="permission-submit">追加</button>
+            <button type="button" class="ghost" id="permission-clear">クリア</button>
+          </div>
+          <p class="helper" id="permission-helper" role="alert"></p>
+        </form>
+        <div class="permission-list-wrapper">
+          <h3>登録済み許可セット</h3>
+          <ul id="permission-list" class="permission-list"></ul>
+          <p id="permission-empty" class="empty">まだ登録されていません。</p>
+        </div>
+      </section>
+
       <section class="card" id="panel-import" role="tabpanel" aria-labelledby="tab-import" hidden>
         <h2>インポート/エクスポート</h2>
         <div class="import-export">
@@ -68,7 +106,7 @@
             <h3>JSONインポート</h3>
             <textarea
               id="import-json"
-              placeholder='[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start"}]'
+              placeholder='{"portals":[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start"}],"permissionSets":[{"portalUrl":"https://d-xxxxx.awsapps.com/start","accountId":"123456789012","roleName":"Admin"}]}'
             ></textarea>
             <button type="button" id="import-button">インポート</button>
             <p class="helper" id="import-helper" role="alert"></p>
