@@ -234,7 +234,6 @@ openAllButton.addEventListener("click", async () => {
   });
 });
 
-
 importButton.addEventListener("click", async () => {
   importHelper.textContent = "";
   const raw = importTextArea.value.trim();
