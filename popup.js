@@ -300,6 +300,18 @@ const tryAutofillUsername = async (tabId, username) => {
   return Boolean(result?.result);
 };
 
+const isSigninUrl = (candidate) => {
+  if (!candidate) {
+    return false;
+  }
+  try {
+    const parsed = new URL(candidate);
+    return parsed.protocol === "https:" && parsed.hostname.endsWith(".signin.aws");
+  } catch (error) {
+    return false;
+  }
+};
+
 const openPortalWithDefaultUsername = async (url, username) => {
   if (!username) {
     chrome.tabs.create({ url });
@@ -316,6 +328,10 @@ const openPortalWithDefaultUsername = async (url, username) => {
       return;
     }
     try {
+      const currentTab = await chrome.tabs.get(tab.id);
+      if (!isSigninUrl(currentTab?.url)) {
+        return;
+      }
       const filled = await tryAutofillUsername(tab.id, username);
       if (filled) {
         window.clearInterval(intervalId);
