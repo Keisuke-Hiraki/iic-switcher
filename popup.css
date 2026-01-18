@@ -36,6 +36,32 @@ body {
   gap: 12px;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: #eef1ff;
+  color: var(--primary-dark);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tab-button.is-active {
+  background: var(--primary);
+  color: white;
+}
+
+.tab-button:hover {
+  border-color: var(--primary-dark);
+}
+
 .header h1 {
   font-size: 18px;
   margin: 0 0 4px;
@@ -85,6 +111,12 @@ button.ghost:hover {
   margin: 0 0 8px;
 }
 
+.card h3 {
+  font-size: 12px;
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+
 label {
   display: flex;
   flex-direction: column;
@@ -100,6 +132,15 @@ input {
   font-size: 12px;
 }
 
+textarea {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  min-height: 120px;
+  resize: vertical;
+}
+
 input:focus {
   outline: 2px solid #ccd6ff;
   border-color: #bcc7ff;
@@ -110,10 +151,23 @@ input:focus {
   gap: 8px;
 }
 
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.form-actions button {
+  flex: 1;
+}
+
 .helper {
   margin: 0;
   font-size: 11px;
   color: var(--danger);
+}
+
+.helper[role="status"] {
+  color: var(--muted);
 }
 
 .list-card {
@@ -194,4 +248,15 @@ input:focus {
   margin: 0;
   font-size: 12px;
   color: var(--muted);
+}
+
+.import-export {
+  display: grid;
+  gap: 12px;
+}
+
+.import-block,
+.export-block {
+  display: grid;
+  gap: 8px;
 }
