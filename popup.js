@@ -2,6 +2,8 @@ const STORAGE_KEY = "iic_portals";
 const portalForm = document.getElementById("portal-form");
 const portalNameInput = document.getElementById("portal-name");
 const portalUrlInput = document.getElementById("portal-url");
+const portalAccountInput = document.getElementById("portal-account");
+const portalRoleInput = document.getElementById("portal-role");
 const formHelper = document.getElementById("form-helper");
 const portalList = document.getElementById("portal-list");
 const portalCount = document.getElementById("portal-count");
@@ -30,6 +32,8 @@ const normalizePortals = (raw) =>
   (Array.isArray(raw) ? raw : []).map((portal) => ({
     name: String(portal?.name ?? "").trim(),
     url: String(portal?.url ?? "").trim(),
+    accountId: String(portal?.accountId ?? "").trim(),
+    roleName: String(portal?.roleName ?? "").trim(),
   }));
 
 const getPortals = () =>
@@ -50,7 +54,7 @@ const savePortals = (portals) =>
     });
   });
 
-const validatePortal = (name, url) => {
+const validatePortal = (name, url, accountId, roleName) => {
   if (!name.trim()) {
     return "表示名を入力してください。";
   }
@@ -69,7 +73,29 @@ const validatePortal = (name, url) => {
   } catch (error) {
     return "URL形式が正しくありません。";
   }
+  const trimmedAccountId = accountId.trim();
+  const trimmedRoleName = roleName.trim();
+  if (trimmedAccountId || trimmedRoleName) {
+    if (!trimmedAccountId || !trimmedRoleName) {
+      return "アカウントIDと許可セット名は両方入力してください。";
+    }
+    if (!/^\d{12}$/.test(trimmedAccountId)) {
+      return "アカウントIDは12桁の数字で入力してください。";
+    }
+  }
   return "";
+};
+
+const buildConsoleUrl = (portal) => {
+  if (!portal.accountId || !portal.roleName) {
+    return "";
+  }
+  const url = new URL(portal.url);
+  url.pathname = "/start/";
+  url.hash = `/console?account_id=${encodeURIComponent(portal.accountId)}&role_name=${encodeURIComponent(
+    portal.roleName,
+  )}`;
+  return url.toString();
 };
 
 const parsePortals = (raw) => {
@@ -81,13 +107,22 @@ const parsePortals = (raw) => {
   for (const entry of raw) {
     const name = entry?.name ?? "";
     const url = entry?.url ?? "";
-    const errorMessage = validatePortal(String(name), String(url));
+    const accountId = entry?.accountId ?? "";
+    const roleName = entry?.roleName ?? "";
+    const errorMessage = validatePortal(
+      String(name),
+      String(url),
+      String(accountId),
+      String(roleName),
+    );
     if (errorMessage) {
       return { error: errorMessage, portals: [] };
     }
     portals.push({
       name: String(name).trim(),
       url: String(url).trim(),
+      accountId: String(accountId).trim(),
+      roleName: String(roleName).trim(),
     });
   }
 
@@ -119,6 +154,15 @@ const renderPortals = (portals) => {
       chrome.tabs.create({ url: portal.url });
     });
 
+    const consoleUrl = buildConsoleUrl(portal);
+    const consoleButton = document.createElement("button");
+    consoleButton.textContent = "コンソール";
+    consoleButton.className = "ghost";
+    consoleButton.hidden = !consoleUrl;
+    consoleButton.addEventListener("click", async () => {
+      chrome.tabs.create({ url: consoleUrl });
+    });
+
     const editButton = document.createElement("button");
     editButton.textContent = "編集";
     editButton.className = "ghost";
@@ -138,14 +182,20 @@ const renderPortals = (portals) => {
       renderPortals(next);
     });
 
-    actions.append(loginButton, editButton, removeButton);
+    actions.append(loginButton, consoleButton, editButton, removeButton);
     meta.append(name, actions);
 
     const url = document.createElement("div");
     url.className = "portal-url";
     url.textContent = portal.url;
 
-    item.append(meta, url);
+    const details = document.createElement("div");
+    details.className = "portal-details";
+    details.textContent = consoleUrl
+      ? `アカウントID: ${portal.accountId} / 許可セット: ${portal.roleName}`
+      : "アカウントID・許可セット未登録";
+
+    item.append(meta, url, details);
     portalList.append(item);
   });
 };
@@ -175,6 +225,8 @@ const resetForm = () => {
   cancelEditButton.hidden = true;
   portalNameInput.value = "";
   portalUrlInput.value = "";
+  portalAccountInput.value = "";
+  portalRoleInput.value = "";
   formHelper.textContent = "";
 };
 
@@ -191,6 +243,8 @@ const startEdit = (index, portal) => {
   cancelEditButton.hidden = false;
   portalNameInput.value = portal.name;
   portalUrlInput.value = portal.url;
+  portalAccountInput.value = portal.accountId ?? "";
+  portalRoleInput.value = portal.roleName ?? "";
   formHelper.textContent = "";
   switchTab("form");
 };
@@ -201,7 +255,9 @@ portalForm.addEventListener("submit", async (event) => {
 
   const name = portalNameInput.value;
   const url = portalUrlInput.value;
-  const errorMessage = validatePortal(name, url);
+  const accountId = portalAccountInput.value;
+  const roleName = portalRoleInput.value;
+  const errorMessage = validatePortal(name, url, accountId, roleName);
 
   if (errorMessage) {
     formHelper.textContent = errorMessage;
@@ -213,6 +269,8 @@ portalForm.addEventListener("submit", async (event) => {
   const entry = {
     name: name.trim(),
     url: url.trim(),
+    accountId: accountId.trim(),
+    roleName: roleName.trim(),
   };
 
   if (currentEditIndex === null) {
@@ -230,7 +288,8 @@ portalForm.addEventListener("submit", async (event) => {
 openAllButton.addEventListener("click", async () => {
   const portals = await getPortals();
   portals.forEach((portal) => {
-    chrome.tabs.create({ url: portal.url });
+    const consoleUrl = buildConsoleUrl(portal);
+    chrome.tabs.create({ url: consoleUrl || portal.url });
   });
 });
 
