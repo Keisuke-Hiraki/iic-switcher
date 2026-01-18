@@ -309,26 +309,21 @@ const openPortalWithDefaultUsername = async (url, username) => {
   if (!tab?.id) {
     return;
   }
-  const handleTabUpdate = async (updatedTabId, info) => {
-    if (updatedTabId !== tab.id || info.status !== "complete") {
+  const startTime = Date.now();
+  const intervalId = window.setInterval(async () => {
+    if (Date.now() - startTime > 30000) {
+      window.clearInterval(intervalId);
       return;
     }
     try {
       const filled = await tryAutofillUsername(tab.id, username);
       if (filled) {
-        window.clearTimeout(timeoutId);
-        chrome.tabs.onUpdated.removeListener(handleTabUpdate);
+        window.clearInterval(intervalId);
       }
     } catch (error) {
       console.warn("Failed to set default username.", error);
     }
-  };
-
-  const timeoutId = window.setTimeout(() => {
-    chrome.tabs.onUpdated.removeListener(handleTabUpdate);
-  }, 30000);
-
-  chrome.tabs.onUpdated.addListener(handleTabUpdate);
+  }, 1000);
 };
 
 importButton.addEventListener("click", async () => {
