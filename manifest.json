@@ -6,8 +6,7 @@
   "permissions": ["storage", "tabs", "scripting"],
   "host_permissions": [
     "https://*.awsapps.com/*",
-    "https://*.signin.aws/*",
-    "https://portal.sso.*.amazonaws.com/*"
+    "https://*.signin.aws/*"
   ],
   "action": {
     "default_popup": "popup.html",
