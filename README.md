@@ -32,7 +32,7 @@ https://d-xxxxx.awsapps.com/start
 - 登録データは Chrome の同期ストレージ（`chrome.storage.sync`）に保存されます。
 - URL は `https://*.awsapps.com/start` の形式のみ登録できます。
 - 誤った URL を入力するとエラーメッセージが表示されます。
-- デフォルトのユーザー名は `popup.js` の `DEFAULT_USERNAME` で設定します。
+- デフォルトのユーザー名はポータルごとに設定できます。
 
 ## 開発
 

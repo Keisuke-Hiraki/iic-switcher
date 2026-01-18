@@ -4,6 +4,7 @@ const DEFAULT_USERNAME = "";
 const portalForm = document.getElementById("portal-form");
 const portalNameInput = document.getElementById("portal-name");
 const portalUrlInput = document.getElementById("portal-url");
+const portalUsernameInput = document.getElementById("portal-username");
 const formHelper = document.getElementById("form-helper");
 const portalList = document.getElementById("portal-list");
 const portalCount = document.getElementById("portal-count");
@@ -77,11 +78,16 @@ const parsePortals = (raw) => {
   for (const entry of raw) {
     const name = entry?.name ?? "";
     const url = entry?.url ?? "";
+    const username = entry?.username ?? "";
     const errorMessage = validatePortal(String(name), String(url));
     if (errorMessage) {
       return { error: errorMessage, portals: [] };
     }
-    portals.push({ name: String(name).trim(), url: String(url).trim() });
+    portals.push({
+      name: String(name).trim(),
+      url: String(url).trim(),
+      username: String(username).trim(),
+    });
   }
 
   return { error: "", portals };
@@ -109,7 +115,7 @@ const renderPortals = (portals) => {
     const loginButton = document.createElement("button");
     loginButton.textContent = "ログイン";
     loginButton.addEventListener("click", async () => {
-      await openPortalWithDefaultUsername(portal.url);
+      await openPortalWithDefaultUsername(portal.url, portal.username);
     });
 
     const editButton = document.createElement("button");
@@ -168,6 +174,7 @@ const resetForm = () => {
   cancelEditButton.hidden = true;
   portalNameInput.value = "";
   portalUrlInput.value = "";
+  portalUsernameInput.value = "";
   formHelper.textContent = "";
 };
 
@@ -184,6 +191,7 @@ const startEdit = (index, portal) => {
   cancelEditButton.hidden = false;
   portalNameInput.value = portal.name;
   portalUrlInput.value = portal.url;
+  portalUsernameInput.value = portal.username ?? "";
   formHelper.textContent = "";
   switchTab("form");
 };
@@ -194,6 +202,7 @@ portalForm.addEventListener("submit", async (event) => {
 
   const name = portalNameInput.value;
   const url = portalUrlInput.value;
+  const username = portalUsernameInput.value;
   const errorMessage = validatePortal(name, url);
 
   if (errorMessage) {
@@ -203,7 +212,11 @@ portalForm.addEventListener("submit", async (event) => {
 
   const portals = await getPortals();
   const next = [...portals];
-  const entry = { name: name.trim(), url: url.trim() };
+  const entry = {
+    name: name.trim(),
+    url: url.trim(),
+    username: username.trim(),
+  };
 
   if (currentEditIndex === null) {
     next.unshift(entry);
@@ -242,7 +255,11 @@ const waitForTabLoad = (tabId) =>
     chrome.tabs.onUpdated.addListener(listener);
   });
 
-const openPortalWithDefaultUsername = async (url) => {
+const openPortalWithDefaultUsername = async (url, username) => {
+  if (!username) {
+    chrome.tabs.create({ url });
+    return;
+  }
   const tab = await createTab(url);
   if (!tab?.id) {
     return;
@@ -251,11 +268,8 @@ const openPortalWithDefaultUsername = async (url) => {
   try {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      args: [DEFAULT_USERNAME],
-      func: (username) => {
-        if (!username) {
-          return;
-        }
+      args: [username],
+      func: (usernameValue) => {
         const candidates = [
           'input[type="email"]',
           'input[type="text"]',
@@ -271,7 +285,7 @@ const openPortalWithDefaultUsername = async (url) => {
           return;
         }
         input.focus();
-        input.value = username;
+        input.value = usernameValue;
         input.dispatchEvent(new Event("input", { bubbles: true }));
         input.dispatchEvent(new Event("change", { bubbles: true }));
         input.blur();
