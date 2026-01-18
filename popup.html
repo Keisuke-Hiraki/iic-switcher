@@ -53,6 +53,20 @@
               required
             />
           </label>
+          <label>
+            アカウントID (任意)
+            <input
+              id="portal-account"
+              name="accountId"
+              placeholder="例: 123456789012"
+              inputmode="numeric"
+              pattern="[0-9]{12}"
+            />
+          </label>
+          <label>
+            許可セット名 (任意)
+            <input id="portal-role" name="roleName" placeholder="例: AdministratorAccess" />
+          </label>
           <div class="form-actions">
             <button type="submit" id="submit-button">追加</button>
             <button type="button" class="ghost" id="cancel-edit" hidden>キャンセル</button>
@@ -68,7 +82,7 @@
             <h3>JSONインポート</h3>
             <textarea
               id="import-json"
-              placeholder='[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start"}]'
+              placeholder='[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start","accountId":"123456789012","roleName":"Admin"}]'
             ></textarea>
             <button type="button" id="import-button">インポート</button>
             <p class="helper" id="import-helper" role="alert"></p>
