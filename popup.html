@@ -53,10 +53,6 @@
               required
             />
           </label>
-          <label>
-            デフォルトユーザー名
-            <input id="portal-username" name="username" placeholder="ユーザー名を入力" />
-          </label>
           <div class="form-actions">
             <button type="submit" id="submit-button">追加</button>
             <button type="button" class="ghost" id="cancel-edit" hidden>キャンセル</button>
@@ -72,7 +68,7 @@
             <h3>JSONインポート</h3>
             <textarea
               id="import-json"
-              placeholder='[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start","username":"user@example.com"}]'
+              placeholder='[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start"}]'
             ></textarea>
             <button type="button" id="import-button">インポート</button>
             <p class="helper" id="import-helper" role="alert"></p>
