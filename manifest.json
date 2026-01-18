@@ -4,7 +4,10 @@
   "description": "複数のIAM Identity Centerアクセスポータルへ1画面からログイン",
   "version": "0.1.0",
   "permissions": ["storage", "tabs", "scripting"],
-  "host_permissions": ["https://*.awsapps.com/*", "https://*.signin.aws/*"],
+  "host_permissions": [
+    "https://*.awsapps.com/*",
+    "https://*.signin.aws/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "IIC Switcher"
