@@ -39,6 +39,8 @@ const exportTextArea = document.getElementById("export-json");
 const exportButton = document.getElementById("export-button");
 const copyExportButton = document.getElementById("copy-export");
 const exportHelper = document.getElementById("export-helper");
+const openSettingsButton = document.getElementById("open-settings");
+const isOptionsView = document.body.classList.contains("options-view");
 
 let currentEditIndex = null;
 let currentEditUrl = null;
@@ -535,10 +537,14 @@ const updatePortalSelect = (portals) => {
 };
 
 const switchTab = (target) => {
-  const isList = target === "list";
-  const isForm = target === "form";
-  const isPermission = target === "permission";
-  const isImport = target === "import";
+  let resolvedTarget = target;
+  if (isOptionsView && resolvedTarget === "list") {
+    resolvedTarget = "form";
+  }
+  const isList = resolvedTarget === "list";
+  const isForm = resolvedTarget === "form";
+  const isPermission = resolvedTarget === "permission";
+  const isImport = resolvedTarget === "import";
 
   tabList.classList.toggle("is-active", isList);
   tabAdd.classList.toggle("is-active", isForm);
@@ -817,6 +823,11 @@ cancelEditButton.addEventListener("click", () => {
   resetForm();
   switchTab("list");
 });
+if (openSettingsButton) {
+  openSettingsButton.addEventListener("click", () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
+  });
+}
 toggleReorderButton.addEventListener("click", async () => {
   isReorderMode = !isReorderMode;
   toggleReorderButton.classList.toggle("is-active", isReorderMode);
@@ -831,4 +842,5 @@ Promise.all([getPortals(), getPermissionSets()]).then(([portals, permissionSets]
   renderPortals(portals, permissionSets);
   renderPermissionSets(portals, permissionSets);
   updatePortalSelect(portals);
+  switchTab(isOptionsView ? "form" : "list");
 });

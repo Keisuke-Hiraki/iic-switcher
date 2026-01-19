@@ -1,0 +1,8 @@
+body.options-view {
+  min-width: 720px;
+}
+
+body.options-view #tab-list,
+body.options-view #panel-list {
+  display: none;
+}
