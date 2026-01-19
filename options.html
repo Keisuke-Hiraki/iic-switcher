@@ -17,11 +17,7 @@
       </header>
 
       <nav class="navbar" role="tablist" aria-label="設定操作">
-        <button class="navbar-item" id="tab-list" role="tab" aria-selected="false" type="button">
-          登録済み
-        </button>
         <button class="navbar-item is-active" id="tab-add" role="tab" aria-selected="true" type="button">
-        <button class="navbar-item" id="tab-add" role="tab" aria-selected="false" type="button">
           追加・編集
         </button>
         <button class="navbar-item" id="tab-permission" role="tab" aria-selected="false" type="button">
@@ -32,19 +28,7 @@
         </button>
       </nav>
 
-      <section class="card list-card" id="panel-list" role="tabpanel" aria-labelledby="tab-list">
-        <div class="list-header">
-          <h2>登録済みポータル</h2>
-          <div class="list-actions">
-            <span id="portal-count">0</span>
-            <button type="button" class="ghost" id="toggle-reorder">並び替え</button>
-          </div>
-        </div>
-        <ul id="portal-list" class="portal-list"></ul>
-        <p id="empty-state" class="empty">まだ登録されていません。</p>
-      </section>
-
-      <section class="card" id="panel-form" role="tabpanel" aria-labelledby="tab-add" hidden>
+      <section class="card" id="panel-form" role="tabpanel" aria-labelledby="tab-add">
         <h2 id="form-title">ポータルを追加</h2>
         <form id="portal-form">
           <label>
@@ -66,6 +50,17 @@
           </div>
           <p class="helper" id="form-helper" role="alert"></p>
         </form>
+        <div class="portal-list-wrapper">
+          <div class="list-header">
+            <h3>登録済みポータル</h3>
+            <div class="list-actions">
+              <span id="portal-count">0</span>
+              <button type="button" class="ghost" id="toggle-reorder">並び替え</button>
+            </div>
+          </div>
+          <ul id="portal-list" class="portal-list"></ul>
+          <p id="empty-state" class="empty">まだ登録されていません。</p>
+        </div>
       </section>
 
       <section class="card" id="panel-permission" role="tabpanel" aria-labelledby="tab-permission" hidden>
