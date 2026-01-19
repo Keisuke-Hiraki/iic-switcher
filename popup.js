@@ -1,5 +1,6 @@
 const STORAGE_KEY_PORTALS = "iic_portals";
 const STORAGE_KEY_PERMISSION_SETS = "iic_permission_sets";
+const MAX_IMPORT_LENGTH = 100000;
 const portalForm = document.getElementById("portal-form");
 const portalNameInput = document.getElementById("portal-name");
 const portalUrlInput = document.getElementById("portal-url");
@@ -892,6 +893,10 @@ if (importButton) {
       importHelper.textContent = "JSONを入力してください。";
       return;
     }
+    if (raw.length > MAX_IMPORT_LENGTH) {
+      importHelper.textContent = `JSONの文字数が上限(${MAX_IMPORT_LENGTH.toLocaleString()}文字)を超えています。`;
+      return;
+    }
 
     try {
       const parsed = JSON.parse(raw);
@@ -918,8 +923,13 @@ if (importButton) {
           ),
       );
 
-      await savePortals(mergedPortals);
-      await savePermissionSets(mergedPermissionSets);
+      try {
+        await savePortals(mergedPortals);
+        await savePermissionSets(mergedPermissionSets);
+      } catch (error) {
+        importHelper.textContent = "ストレージ容量の上限を超えたため、インポートに失敗しました。";
+        return;
+      }
       renderPortals(mergedPortals, mergedPermissionSets);
       renderPermissionSets(mergedPortals, mergedPermissionSets);
       updatePortalSelect(mergedPortals);
