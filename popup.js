@@ -8,7 +8,6 @@ const portalList = document.getElementById("portal-list");
 const portalCount = document.getElementById("portal-count");
 const toggleReorderButton = document.getElementById("toggle-reorder");
 const emptyState = document.getElementById("empty-state");
-const openAllButton = document.getElementById("open-all");
 const tabList = document.getElementById("tab-list");
 const tabAdd = document.getElementById("tab-add");
 const tabPermission = document.getElementById("tab-permission");
@@ -24,7 +23,9 @@ const permissionForm = document.getElementById("permission-form");
 const permissionTitle = document.getElementById("permission-title");
 const permissionPortalSelect = document.getElementById("permission-portal");
 const permissionAccountInput = document.getElementById("permission-account");
+const permissionAccountNameInput = document.getElementById("permission-account-name");
 const permissionRoleInput = document.getElementById("permission-role");
+const permissionNoteInput = document.getElementById("permission-note");
 const permissionSubmitButton = document.getElementById("permission-submit");
 const permissionClearButton = document.getElementById("permission-clear");
 const permissionCancelButton = document.getElementById("permission-cancel");
@@ -57,7 +58,9 @@ const normalizePermissionSets = (raw) =>
   (Array.isArray(raw) ? raw : []).map((entry) => ({
     portalUrl: String(entry?.portalUrl ?? "").trim(),
     accountId: String(entry?.accountId ?? "").trim(),
+    accountName: String(entry?.accountName ?? "").trim(),
     roleName: String(entry?.roleName ?? "").trim(),
+    note: String(entry?.note ?? "").trim(),
   }));
 
 const getPortals = () =>
@@ -136,7 +139,7 @@ const validatePortal = (name, url, accountId, roleName) => {
   return "";
 };
 
-const validatePermissionSet = (portalUrl, accountId, roleName) => {
+const validatePermissionSet = (portalUrl, accountId, accountName, roleName) => {
   if (!portalUrl.trim()) {
     return "ポータルを選択してください。";
   }
@@ -146,6 +149,9 @@ const validatePermissionSet = (portalUrl, accountId, roleName) => {
   }
   if (!/^\d{12}$/.test(accountId.trim())) {
     return "アカウントIDは12桁の数字で入力してください。";
+  }
+  if (!accountName.trim()) {
+    return "アカウント名を入力してください。";
   }
   if (!roleName.trim()) {
     return "許可セット名を入力してください。";
@@ -198,10 +204,13 @@ const parsePermissionSets = (raw) => {
   for (const entry of Array.isArray(raw) ? raw : []) {
     const portalUrl = entry?.portalUrl ?? "";
     const accountId = entry?.accountId ?? "";
+    const accountName = entry?.accountName ?? "";
     const roleName = entry?.roleName ?? "";
+    const note = entry?.note ?? "";
     const errorMessage = validatePermissionSet(
       String(portalUrl),
       String(accountId),
+      String(accountName),
       String(roleName),
     );
     if (errorMessage) {
@@ -210,7 +219,9 @@ const parsePermissionSets = (raw) => {
     permissionSets.push({
       portalUrl: String(portalUrl).trim(),
       accountId: String(accountId).trim(),
+      accountName: String(accountName).trim(),
       roleName: String(roleName).trim(),
+      note: String(note).trim(),
     });
   }
   return { error: "", permissionSets };
@@ -370,8 +381,17 @@ const renderPortals = (portals, permissionSets) => {
         const permissionItem = document.createElement("div");
         permissionItem.className = "portal-permission-item";
 
-        const text = document.createElement("span");
-        text.textContent = `${permission.accountId} / ${permission.roleName}`;
+        const text = document.createElement("div");
+        text.className = "portal-permission-text";
+        const displayAccountName = permission.accountName || permission.accountId;
+        text.textContent = `アカウント名: ${displayAccountName} / 許可セット: ${permission.roleName}`;
+
+        if (permission.note) {
+          const note = document.createElement("div");
+          note.className = "portal-permission-note";
+          note.textContent = permission.note;
+          text.append(note);
+        }
 
         const consoleButton = document.createElement("button");
         consoleButton.textContent = "コンソール";
@@ -427,7 +447,9 @@ const renderPermissionSets = (portals, permissionSets) => {
       permissionCancelButton.hidden = false;
       permissionPortalSelect.value = permission.portalUrl;
       permissionAccountInput.value = permission.accountId;
+      permissionAccountNameInput.value = permission.accountName ?? "";
       permissionRoleInput.value = permission.roleName;
+      permissionNoteInput.value = permission.note ?? "";
       permissionHelper.textContent = "";
       switchTab("permission");
     });
@@ -464,13 +486,21 @@ const renderPermissionSets = (portals, permissionSets) => {
 
     const subtitle = document.createElement("div");
     subtitle.className = "permission-subtitle";
-    subtitle.textContent = `アカウントID: ${permission.accountId} / 許可セット: ${permission.roleName}`;
+    const displayAccountName = permission.accountName || permission.accountId;
+    subtitle.textContent = `アカウント名: ${displayAccountName} / アカウントID: ${permission.accountId} / 許可セット: ${permission.roleName}`;
 
     const portalInfo = document.createElement("div");
     portalInfo.className = "permission-subtitle";
     portalInfo.textContent = permission.portalUrl;
 
-    item.append(meta, subtitle, portalInfo);
+    if (permission.note) {
+      const note = document.createElement("div");
+      note.className = "permission-note";
+      note.textContent = permission.note;
+      item.append(meta, subtitle, note, portalInfo);
+    } else {
+      item.append(meta, subtitle, portalInfo);
+    }
     permissionList.append(item);
   });
 };
@@ -485,7 +515,9 @@ const updatePortalSelect = (portals) => {
     permissionPortalSelect.disabled = true;
     permissionSubmitButton.disabled = true;
     permissionAccountInput.disabled = true;
+    permissionAccountNameInput.disabled = true;
     permissionRoleInput.disabled = true;
+    permissionNoteInput.disabled = true;
     return;
   }
   portals.forEach((portal) => {
@@ -497,7 +529,9 @@ const updatePortalSelect = (portals) => {
   permissionPortalSelect.disabled = false;
   permissionSubmitButton.disabled = false;
   permissionAccountInput.disabled = false;
+  permissionAccountNameInput.disabled = false;
   permissionRoleInput.disabled = false;
+  permissionNoteInput.disabled = false;
 };
 
 const switchTab = (target) => {
@@ -545,6 +579,8 @@ const resetForm = () => {
 const resetPermissionForm = () => {
   permissionRoleInput.value = "";
   permissionAccountInput.value = "";
+  permissionAccountNameInput.value = "";
+  permissionNoteInput.value = "";
   permissionHelper.textContent = "";
   permissionTitle.textContent = "許可セットを追加";
   permissionSubmitButton.textContent = "追加";
@@ -624,28 +660,6 @@ portalForm.addEventListener("submit", async (event) => {
   switchTab("list");
 });
 
-openAllButton.addEventListener("click", async () => {
-  const [portals, permissionSets] = await Promise.all([getPortals(), getPermissionSets()]);
-  const permissionSetsByPortal = new Map();
-  permissionSets.forEach((permission) => {
-    const list = permissionSetsByPortal.get(permission.portalUrl) ?? [];
-    list.push(permission);
-    permissionSetsByPortal.set(permission.portalUrl, list);
-  });
-
-  portals.forEach((portal) => {
-    const portalPermissionSets = permissionSetsByPortal.get(portal.url) ?? [];
-    if (portalPermissionSets.length === 0) {
-      chrome.tabs.create({ url: portal.url });
-    } else {
-      portalPermissionSets.forEach((permission) => {
-        chrome.tabs.create({
-          url: buildConsoleUrl(permission.portalUrl, permission.accountId, permission.roleName),
-        });
-      });
-    }
-  });
-});
 
 permissionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -653,8 +667,10 @@ permissionForm.addEventListener("submit", async (event) => {
 
   const portalUrl = permissionPortalSelect.value;
   const accountId = permissionAccountInput.value;
+  const accountName = permissionAccountNameInput.value;
   const roleName = permissionRoleInput.value;
-  const errorMessage = validatePermissionSet(portalUrl, accountId, roleName);
+  const note = permissionNoteInput.value;
+  const errorMessage = validatePermissionSet(portalUrl, accountId, accountName, roleName);
 
   if (errorMessage) {
     permissionHelper.textContent = errorMessage;
@@ -665,7 +681,9 @@ permissionForm.addEventListener("submit", async (event) => {
   const trimmedPermission = {
     portalUrl: portalUrl.trim(),
     accountId: accountId.trim(),
+    accountName: accountName.trim(),
     roleName: roleName.trim(),
+    note: note.trim(),
   };
   const isEditing = currentPermissionEditKey !== null;
   const duplicate = permissionSets.some((permission) => {
@@ -707,6 +725,8 @@ permissionForm.addEventListener("submit", async (event) => {
 permissionClearButton.addEventListener("click", () => {
   permissionRoleInput.value = "";
   permissionAccountInput.value = "";
+  permissionAccountNameInput.value = "";
+  permissionNoteInput.value = "";
   permissionHelper.textContent = "";
 });
 
