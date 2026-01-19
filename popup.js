@@ -112,7 +112,7 @@ const validatePortalUrl = (url) => {
   return "";
 };
 
-const validatePortal = (name, url) => {
+const validatePortal = (name, url, accountId, roleName) => {
   if (!name.trim()) {
     return "表示名を入力してください。";
   }
@@ -122,6 +122,16 @@ const validatePortal = (name, url) => {
   const urlError = validatePortalUrl(url);
   if (urlError) {
     return urlError;
+  }
+  const trimmedAccountId = accountId.trim();
+  const trimmedRoleName = roleName.trim();
+  if (trimmedAccountId || trimmedRoleName) {
+    if (!trimmedAccountId || !trimmedRoleName) {
+      return "アカウントIDと許可セット名は両方入力してください。";
+    }
+    if (!/^\d{12}$/.test(trimmedAccountId)) {
+      return "アカウントIDは12桁の数字で入力してください。";
+    }
   }
   return "";
 };
