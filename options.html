@@ -13,6 +13,12 @@
         <div>
           <h1>IIC Switcher 設定</h1>
           <p>登録・更新など一覧以外の設定はこちらで管理します。</p>
+          <p class="notice">登録されたデータはログイン中のGoogleアカウントで同期されます。</p>
+          <p class="notice">
+            データの取り扱いについては
+            <a href="privacy-policy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
+            を確認してください。
+          </p>
         </div>
       </header>
 
@@ -33,7 +39,7 @@
         <form id="portal-form">
           <label>
             表示名
-            <input id="portal-name" name="name" placeholder="例: 本番アカウント" required />
+            <input id="portal-name" name="name" placeholder="例: 本番アカウント" autocomplete="off" required />
           </label>
           <label>
             アクセスポータルURL
@@ -41,6 +47,7 @@
               id="portal-url"
               name="url"
               placeholder="例: https://d-xxxxx.awsapps.com/start"
+              autocomplete="off"
               required
             />
           </label>
@@ -78,20 +85,38 @@
               placeholder="例: 123456789012"
               inputmode="numeric"
               pattern="[0-9]{12}"
+              autocomplete="off"
               required
             />
           </label>
           <label>
             アカウント名
-            <input id="permission-account-name" name="accountName" placeholder="例: production" required />
+            <input
+              id="permission-account-name"
+              name="accountName"
+              placeholder="例: production"
+              autocomplete="off"
+              required
+            />
           </label>
           <label>
             許可セット名
-            <input id="permission-role" name="roleName" placeholder="例: AdministratorAccess" required />
+            <input
+              id="permission-role"
+              name="roleName"
+              placeholder="例: AdministratorAccess"
+              autocomplete="off"
+              required
+            />
           </label>
           <label>
             メモ (任意)
-            <textarea id="permission-note" name="note" placeholder="例: 会計チームのみ利用"></textarea>
+            <textarea
+              id="permission-note"
+              name="note"
+              placeholder="例: 会計チームのみ利用"
+              autocomplete="off"
+            ></textarea>
           </label>
           <div class="form-actions">
             <button type="submit" id="permission-submit">追加</button>
@@ -112,16 +137,18 @@
         <div class="import-export">
           <div class="import-block">
             <h3>JSONインポート</h3>
+            <p class="notice">エクスポートされるJSONには機密情報が含まれるため、取り扱いには十分注意してください。</p>
             <textarea
               id="import-json"
               placeholder='{"portals":[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start"}],"permissionSets":[{"portalUrl":"https://d-xxxxx.awsapps.com/start","accountId":"123456789012","accountName":"production","roleName":"Admin","note":"会計チーム"}]}'
+              autocomplete="off"
             ></textarea>
             <button type="button" id="import-button">インポート</button>
             <p class="helper" id="import-helper" role="alert"></p>
           </div>
           <div class="export-block">
             <h3>JSONエクスポート</h3>
-            <textarea id="export-json" readonly></textarea>
+            <textarea id="export-json" autocomplete="off" readonly></textarea>
             <div class="form-actions">
               <button type="button" id="export-button">最新のJSONを表示</button>
               <button type="button" class="ghost" id="copy-export">コピー</button>
