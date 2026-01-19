@@ -1,0 +1,23 @@
+body.options-view {
+  min-width: 520px;
+}
+
+body.options-view .app {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+body.options-view .header h1 {
+  font-size: 20px;
+}
+
+body.options-view .header p {
+  font-size: 13px;
+}
+
+body.options-view .portal-list-wrapper {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
