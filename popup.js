@@ -340,11 +340,11 @@ const renderPortals = (portals, permissionSets) => {
       dragHandle.type = "button";
       dragHandle.textContent = "ドラッグで移動";
       dragHandle.className = "portal-drag-handle";
-      dragHandle.addEventListener("mousedown", () => {
-        item.setAttribute("draggable", "true");
+      dragHandle.addEventListener("mousedown", (event) => {
+        event.preventDefault();
       });
-      dragHandle.addEventListener("touchstart", () => {
-        item.setAttribute("draggable", "true");
+      dragHandle.addEventListener("touchstart", (event) => {
+        event.preventDefault();
       });
       actions.append(dragHandle);
     }
