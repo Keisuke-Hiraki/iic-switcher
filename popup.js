@@ -105,20 +105,10 @@ const validatePortalUrl = (url) => {
   } catch (error) {
     return "URL形式が正しくありません。";
   }
-  const trimmedAccountId = accountId.trim();
-  const trimmedRoleName = roleName.trim();
-  if (trimmedAccountId || trimmedRoleName) {
-    if (!trimmedAccountId || !trimmedRoleName) {
-      return "アカウントIDと許可セット名は両方入力してください。";
-    }
-    if (!/^\d{12}$/.test(trimmedAccountId)) {
-      return "アカウントIDは12桁の数字で入力してください。";
-    }
-  }
   return "";
 };
 
-const validatePortal = (name, url) => {
+const validatePortal = (name, url, accountId, roleName) => {
   if (!name.trim()) {
     return "表示名を入力してください。";
   }
@@ -128,6 +118,16 @@ const validatePortal = (name, url) => {
   const urlError = validatePortalUrl(url);
   if (urlError) {
     return urlError;
+  }
+  const trimmedAccountId = accountId.trim();
+  const trimmedRoleName = roleName.trim();
+  if (trimmedAccountId || trimmedRoleName) {
+    if (!trimmedAccountId || !trimmedRoleName) {
+      return "アカウントIDと許可セット名は両方入力してください。";
+    }
+    if (!/^\d{12}$/.test(trimmedAccountId)) {
+      return "アカウントIDは12桁の数字で入力してください。";
+    }
   }
   return "";
 };
@@ -150,10 +150,17 @@ const validatePermissionSet = (portalUrl, accountId, roleName) => {
 };
 
 const buildConsoleUrl = (portalUrl, accountId, roleName) => {
-  const url = new URL(portalUrl);
-  url.pathname = "/start/";
-  url.hash = `/console?account_id=${encodeURIComponent(accountId)}&role_name=${encodeURIComponent(roleName)}`;
-  return url.toString();
+  if (!portalUrl || !accountId || !roleName) {
+    return "";
+  }
+  try {
+    const url = new URL(portalUrl);
+    url.pathname = "/start/";
+    url.hash = `/console?account_id=${encodeURIComponent(accountId)}&role_name=${encodeURIComponent(roleName)}`;
+    return url.toString();
+  } catch (error) {
+    return "";
+  }
 };
 
 const parsePortals = (raw) => {
@@ -256,7 +263,7 @@ const renderPortals = (portals, permissionSets) => {
       chrome.tabs.create({ url: portal.url });
     });
 
-    const consoleUrl = buildConsoleUrl(portal);
+    const consoleUrl = buildConsoleUrl(portal.url, portal.accountId, portal.roleName);
     const consoleButton = document.createElement("button");
     consoleButton.textContent = "コンソール";
     consoleButton.className = "ghost";
