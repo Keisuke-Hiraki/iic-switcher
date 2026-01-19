@@ -3,8 +3,6 @@ const STORAGE_KEY_PERMISSION_SETS = "iic_permission_sets";
 const portalForm = document.getElementById("portal-form");
 const portalNameInput = document.getElementById("portal-name");
 const portalUrlInput = document.getElementById("portal-url");
-const portalAccountInput = document.getElementById("portal-account");
-const portalRoleInput = document.getElementById("portal-role");
 const formHelper = document.getElementById("form-helper");
 const portalList = document.getElementById("portal-list");
 const portalCount = document.getElementById("portal-count");
@@ -170,12 +168,7 @@ const parsePortals = (raw) => {
     const url = entry?.url ?? "";
     const accountId = entry?.accountId ?? "";
     const roleName = entry?.roleName ?? "";
-    const errorMessage = validatePortal(
-      String(name),
-      String(url),
-      String(accountId),
-      String(roleName),
-    );
+    const errorMessage = validatePortal(String(name), String(url));
     if (errorMessage) {
       return { error: errorMessage, portals: [] };
     }
@@ -459,8 +452,6 @@ const resetForm = () => {
   cancelEditButton.hidden = true;
   portalNameInput.value = "";
   portalUrlInput.value = "";
-  portalAccountInput.value = "";
-  portalRoleInput.value = "";
   formHelper.textContent = "";
 };
 
@@ -486,8 +477,6 @@ const startEdit = (index, portal) => {
   cancelEditButton.hidden = false;
   portalNameInput.value = portal.name;
   portalUrlInput.value = portal.url;
-  portalAccountInput.value = portal.accountId ?? "";
-  portalRoleInput.value = portal.roleName ?? "";
   formHelper.textContent = "";
   switchTab("form");
 };
@@ -498,9 +487,7 @@ portalForm.addEventListener("submit", async (event) => {
 
   const name = portalNameInput.value;
   const url = portalUrlInput.value;
-  const accountId = portalAccountInput.value;
-  const roleName = portalRoleInput.value;
-  const errorMessage = validatePortal(name, url, accountId, roleName);
+  const errorMessage = validatePortal(name, url);
 
   if (errorMessage) {
     formHelper.textContent = errorMessage;
@@ -509,11 +496,12 @@ portalForm.addEventListener("submit", async (event) => {
 
   const portals = await getPortals();
   const next = [...portals];
+  const previousEntry = currentEditIndex === null ? null : portals[currentEditIndex] ?? null;
   const entry = {
     name: name.trim(),
     url: url.trim(),
-    accountId: accountId.trim(),
-    roleName: roleName.trim(),
+    accountId: previousEntry?.accountId ?? "",
+    roleName: previousEntry?.roleName ?? "",
   };
 
   if (currentEditIndex === null) {
