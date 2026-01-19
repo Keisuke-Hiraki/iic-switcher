@@ -142,6 +142,11 @@ select {
   background: white;
 }
 
+select:focus {
+  outline: 2px solid #ccd6ff;
+  border-color: #bcc7ff;
+}
+
 textarea {
   border: 1px solid var(--border);
   padding: 8px 10px;
