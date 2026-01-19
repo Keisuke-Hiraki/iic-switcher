@@ -3,24 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>IIC Switcher</title>
+    <title>IIC Switcher 設定</title>
     <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="options.css" />
   </head>
-  <body>
+  <body class="options-view">
     <main class="app">
       <header class="header">
         <div>
-          <h1>IIC Switcher</h1>
-        </div>
-        <div class="header-actions">
-          <button type="button" class="ghost" id="open-settings">設定を開く</button>
+          <h1>IIC Switcher 設定</h1>
+          <p>登録・更新など一覧以外の設定はこちらで管理します。</p>
         </div>
       </header>
 
-      <nav class="navbar" role="tablist" aria-label="ポータル操作">
-        <button class="navbar-item is-active" id="tab-list" role="tab" aria-selected="true" type="button">
+      <nav class="navbar" role="tablist" aria-label="設定操作">
+        <button class="navbar-item" id="tab-list" role="tab" aria-selected="false" type="button">
           登録済み
         </button>
+        <button class="navbar-item is-active" id="tab-add" role="tab" aria-selected="true" type="button">
         <button class="navbar-item" id="tab-add" role="tab" aria-selected="false" type="button">
           追加・編集
         </button>
