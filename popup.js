@@ -384,7 +384,7 @@ const renderPortals = (portals, permissionSets) => {
         const text = document.createElement("div");
         text.className = "portal-permission-text";
         const displayAccountName = permission.accountName || permission.accountId;
-        text.textContent = `アカウント名: ${displayAccountName} / 許可セット: ${permission.roleName}`;
+        text.textContent = `${displayAccountName} / ${permission.roleName}`;
 
         if (permission.note) {
           const note = document.createElement("div");
