@@ -923,20 +923,10 @@ if (importButton) {
           ),
       );
 
-      let portalSaveFailed = false;
-      await savePortals(mergedPortals).catch(() => {
-        portalSaveFailed = true;
-      });
-      if (portalSaveFailed) {
-        importHelper.textContent = "ストレージ容量の上限を超えたため、インポートに失敗しました。";
-        return;
-      }
-
-      let permissionSaveFailed = false;
-      await savePermissionSets(mergedPermissionSets).catch(() => {
-        permissionSaveFailed = true;
-      });
-      if (permissionSaveFailed) {
+      try {
+        await savePortals(mergedPortals);
+        await savePermissionSets(mergedPermissionSets);
+      } catch (error) {
         importHelper.textContent = "ストレージ容量の上限を超えたため、インポートに失敗しました。";
         return;
       }
