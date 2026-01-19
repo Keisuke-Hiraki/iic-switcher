@@ -196,6 +196,18 @@ input:focus {
   align-items: center;
 }
 
+.list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#toggle-reorder.is-active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary-dark);
+}
+
 #portal-count {
   background: #eef1ff;
   color: var(--primary-dark);
