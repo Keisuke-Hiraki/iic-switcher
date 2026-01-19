@@ -244,6 +244,7 @@ input:focus {
 
 .portal-item.is-dragging {
   opacity: 0.6;
+  cursor: grabbing;
 }
 
 .portal-drag-handle {
