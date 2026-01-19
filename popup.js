@@ -3,6 +3,8 @@ const STORAGE_KEY_PERMISSION_SETS = "iic_permission_sets";
 const portalForm = document.getElementById("portal-form");
 const portalNameInput = document.getElementById("portal-name");
 const portalUrlInput = document.getElementById("portal-url");
+const portalAccountInput = document.getElementById("portal-account");
+const portalRoleInput = document.getElementById("portal-role");
 const formHelper = document.getElementById("form-helper");
 const portalList = document.getElementById("portal-list");
 const portalCount = document.getElementById("portal-count");
@@ -43,6 +45,8 @@ const normalizePortals = (raw) =>
   (Array.isArray(raw) ? raw : []).map((portal) => ({
     name: String(portal?.name ?? "").trim(),
     url: String(portal?.url ?? "").trim(),
+    accountId: String(portal?.accountId ?? "").trim(),
+    roleName: String(portal?.roleName ?? "").trim(),
   }));
 
 const normalizePermissionSets = (raw) =>
@@ -101,6 +105,16 @@ const validatePortalUrl = (url) => {
   } catch (error) {
     return "URL形式が正しくありません。";
   }
+  const trimmedAccountId = accountId.trim();
+  const trimmedRoleName = roleName.trim();
+  if (trimmedAccountId || trimmedRoleName) {
+    if (!trimmedAccountId || !trimmedRoleName) {
+      return "アカウントIDと許可セット名は両方入力してください。";
+    }
+    if (!/^\d{12}$/.test(trimmedAccountId)) {
+      return "アカウントIDは12桁の数字で入力してください。";
+    }
+  }
   return "";
 };
 
@@ -147,13 +161,22 @@ const parsePortals = (raw) => {
   for (const entry of Array.isArray(raw) ? raw : []) {
     const name = entry?.name ?? "";
     const url = entry?.url ?? "";
-    const errorMessage = validatePortal(String(name), String(url));
+    const accountId = entry?.accountId ?? "";
+    const roleName = entry?.roleName ?? "";
+    const errorMessage = validatePortal(
+      String(name),
+      String(url),
+      String(accountId),
+      String(roleName),
+    );
     if (errorMessage) {
       return { error: errorMessage, portals: [] };
     }
     portals.push({
       name: String(name).trim(),
       url: String(url).trim(),
+      accountId: String(accountId).trim(),
+      roleName: String(roleName).trim(),
     });
   }
   return { error: "", portals };
@@ -233,6 +256,15 @@ const renderPortals = (portals, permissionSets) => {
       chrome.tabs.create({ url: portal.url });
     });
 
+    const consoleUrl = buildConsoleUrl(portal);
+    const consoleButton = document.createElement("button");
+    consoleButton.textContent = "コンソール";
+    consoleButton.className = "ghost";
+    consoleButton.hidden = !consoleUrl;
+    consoleButton.addEventListener("click", async () => {
+      chrome.tabs.create({ url: consoleUrl });
+    });
+
     const editButton = document.createElement("button");
     editButton.textContent = "編集";
     editButton.className = "ghost";
@@ -261,7 +293,7 @@ const renderPortals = (portals, permissionSets) => {
       updatePortalSelect(next);
     });
 
-    actions.append(loginButton, editButton, removeButton);
+    actions.append(loginButton, consoleButton, editButton, removeButton);
     meta.append(name, actions);
 
     const url = document.createElement("div");
@@ -416,6 +448,8 @@ const resetForm = () => {
   cancelEditButton.hidden = true;
   portalNameInput.value = "";
   portalUrlInput.value = "";
+  portalAccountInput.value = "";
+  portalRoleInput.value = "";
   formHelper.textContent = "";
 };
 
@@ -441,7 +475,8 @@ const startEdit = (index, portal) => {
   cancelEditButton.hidden = false;
   portalNameInput.value = portal.name;
   portalUrlInput.value = portal.url;
-  currentEditUrl = portal.url;
+  portalAccountInput.value = portal.accountId ?? "";
+  portalRoleInput.value = portal.roleName ?? "";
   formHelper.textContent = "";
   switchTab("form");
 };
@@ -452,7 +487,9 @@ portalForm.addEventListener("submit", async (event) => {
 
   const name = portalNameInput.value;
   const url = portalUrlInput.value;
-  const errorMessage = validatePortal(name, url);
+  const accountId = portalAccountInput.value;
+  const roleName = portalRoleInput.value;
+  const errorMessage = validatePortal(name, url, accountId, roleName);
 
   if (errorMessage) {
     formHelper.textContent = errorMessage;
@@ -464,6 +501,8 @@ portalForm.addEventListener("submit", async (event) => {
   const entry = {
     name: name.trim(),
     url: url.trim(),
+    accountId: accountId.trim(),
+    roleName: roleName.trim(),
   };
 
   if (currentEditIndex === null) {
