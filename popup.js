@@ -181,6 +181,20 @@ const isSamePermission = (left, right) =>
   left.accountId === right.accountId &&
   left.roleName === right.roleName;
 
+const comparePermissionSets = (left, right) => {
+  const leftDisplay = left.accountName || left.accountId || "";
+  const rightDisplay = right.accountName || right.accountId || "";
+  const displayComparison = leftDisplay.localeCompare(rightDisplay, "en", { sensitivity: "base" });
+  if (displayComparison !== 0) {
+    return displayComparison;
+  }
+  const roleComparison = (left.roleName || "").localeCompare(right.roleName || "", "en", { sensitivity: "base" });
+  if (roleComparison !== 0) {
+    return roleComparison;
+  }
+  return (left.accountId || "").localeCompare(right.accountId || "", "en", { sensitivity: "base" });
+};
+
 const parsePortals = (raw) => {
   const portals = [];
   for (const entry of Array.isArray(raw) ? raw : []) {
@@ -384,7 +398,8 @@ const renderPortals = (portals, permissionSets) => {
 
     const details = document.createElement("div");
     details.className = "portal-details";
-    const portalPermissionSets = permissionSetsByPortal.get(portal.url) ?? [];
+    const portalPermissionSets =
+      permissionSetsByPortal.get(portal.url)?.slice().sort(comparePermissionSets) ?? [];
     if (portalPermissionSets.length === 0) {
       details.textContent = "許可セット未登録";
     } else {
@@ -505,7 +520,7 @@ const renderPermissionSets = (portals, permissionSets) => {
     ];
 
     orderedPortalUrls.forEach((portalUrl) => {
-      const portalPermissions = grouped.get(portalUrl);
+      const portalPermissions = grouped.get(portalUrl)?.slice().sort(comparePermissionSets);
       if (!portalPermissions || portalPermissions.length === 0) {
         return;
       }
@@ -564,7 +579,7 @@ const renderPermissionSets = (portals, permissionSets) => {
     return;
   }
 
-  permissionSets.forEach((permission) => {
+  permissionSets.slice().sort(comparePermissionSets).forEach((permission) => {
     const item = document.createElement("li");
     item.className = "permission-item";
 
