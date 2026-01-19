@@ -371,7 +371,11 @@ const renderPermissionSets = (portals, permissionSets) => {
     removeButton.className = "danger";
     removeButton.addEventListener("click", async () => {
       const currentPermissionSets = await getPermissionSets();
-      const next = currentPermissionSets.filter((_, permissionIndex) => permissionIndex !== index);
+      const next = currentPermissionSets.filter((p) => 
+        !(p.portalUrl === permission.portalUrl && 
+          p.accountId === permission.accountId && 
+          p.roleName === permission.roleName)
+      );
       await savePermissionSets(next);
       renderPermissionSets(portals, next);
       renderPortals(portals, next);
