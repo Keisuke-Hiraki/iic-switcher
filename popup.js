@@ -161,7 +161,7 @@ const renderPortals = (portals) => {
 
     const loginButton = document.createElement("button");
     loginButton.textContent = "ログイン";
-    loginButton.addEventListener("click", async () => {
+    loginButton.addEventListener("click", () => {
       chrome.tabs.create({ url: portal.url });
     });
 
@@ -170,7 +170,7 @@ const renderPortals = (portals) => {
     consoleButton.textContent = "コンソール";
     consoleButton.className = "ghost";
     consoleButton.hidden = !consoleUrl;
-    consoleButton.addEventListener("click", async () => {
+    consoleButton.addEventListener("click", () => {
       chrome.tabs.create({ url: consoleUrl });
     });
 
