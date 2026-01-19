@@ -420,3 +420,51 @@ input:focus {
 .permission-actions button {
   flex: 1;
 }
+
+.permission-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fafbff;
+}
+
+.permission-group-list {
+  display: grid;
+  gap: 6px;
+}
+
+.permission-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f0f3ff;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.permission-entry-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.permission-entry-title {
+  font-weight: 600;
+}
+
+.permission-entry-subtitle,
+.permission-entry-note {
+  color: var(--muted);
+}
+
+.permission-entry .permission-actions button {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  font-size: 11px;
+}

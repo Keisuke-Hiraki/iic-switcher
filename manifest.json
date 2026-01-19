@@ -9,5 +9,10 @@
     "default_popup": "popup.html",
     "default_title": "IIC Switcher"
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "icons": {
+    "16": "icon/iic-swtcher-logo16.png",
+    "48": "icon/iic-swtcher-logo48.png",
+    "128": "icon/iic-swtcher-logo128.png"
+  }
 }

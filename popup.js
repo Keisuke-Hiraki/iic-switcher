@@ -313,20 +313,24 @@ const renderPortals = (portals, permissionSets) => {
     const actions = document.createElement("div");
     actions.className = "portal-actions";
 
-    const loginButton = document.createElement("button");
-    loginButton.textContent = "ログイン";
-    loginButton.addEventListener("click", () => {
-      chrome.tabs.create({ url: portal.url });
-    });
+    if (!isOptionsView) {
+      const loginButton = document.createElement("button");
+      loginButton.textContent = "ログイン";
+      loginButton.addEventListener("click", () => {
+        chrome.tabs.create({ url: portal.url });
+      });
 
-    const consoleUrl = buildConsoleUrl(portal.url, portal.accountId, portal.roleName);
-    const consoleButton = document.createElement("button");
-    consoleButton.textContent = "コンソール";
-    consoleButton.className = "ghost";
-    consoleButton.hidden = !consoleUrl;
-    consoleButton.addEventListener("click", () => {
-      chrome.tabs.create({ url: consoleUrl });
-    });
+      const consoleUrl = buildConsoleUrl(portal.url, portal.accountId, portal.roleName);
+      const consoleButton = document.createElement("button");
+      consoleButton.textContent = "コンソール";
+      consoleButton.className = "ghost";
+      consoleButton.hidden = !consoleUrl;
+      consoleButton.addEventListener("click", () => {
+        chrome.tabs.create({ url: consoleUrl });
+      });
+
+      actions.append(loginButton, consoleButton);
+    }
 
     if (isReorderMode && isManagementView) {
       const dragHandle = document.createElement("button");
@@ -342,7 +346,6 @@ const renderPortals = (portals, permissionSets) => {
       actions.append(dragHandle);
     }
 
-    actions.append(loginButton, consoleButton);
     if (isManagementView) {
       const editButton = document.createElement("button");
       editButton.textContent = "編集";
@@ -405,16 +408,20 @@ const renderPortals = (portals, permissionSets) => {
           text.append(note);
         }
 
-        const consoleButton = document.createElement("button");
-        consoleButton.textContent = "コンソール";
-        consoleButton.className = "ghost";
-        consoleButton.addEventListener("click", () => {
-          chrome.tabs.create({
-            url: buildConsoleUrl(permission.portalUrl, permission.accountId, permission.roleName),
+        if (!isOptionsView) {
+          const consoleButton = document.createElement("button");
+          consoleButton.textContent = "コンソール";
+          consoleButton.className = "ghost";
+          consoleButton.addEventListener("click", () => {
+            chrome.tabs.create({
+              url: buildConsoleUrl(permission.portalUrl, permission.accountId, permission.roleName),
+            });
           });
-        });
 
-        permissionItem.append(text, consoleButton);
+          permissionItem.append(text, consoleButton);
+        } else {
+          permissionItem.append(text);
+        }
         list.append(permissionItem);
       });
       details.append(label, list);
@@ -436,20 +443,7 @@ const renderPermissionSets = (portals, permissionSets) => {
 
   const portalMap = new Map(portals.map((portal) => [portal.url, portal.name]));
 
-  permissionSets.forEach((permission, index) => {
-    const item = document.createElement("li");
-    item.className = "permission-item";
-
-    const meta = document.createElement("div");
-    meta.className = "permission-meta";
-
-    const title = document.createElement("span");
-    title.className = "permission-title";
-    title.textContent = portalMap.get(permission.portalUrl) ?? "未登録ポータル";
-
-    const actions = document.createElement("div");
-    actions.className = "permission-actions";
-
+  const buildPermissionEditButton = (permission) => {
     const editButton = document.createElement("button");
     editButton.textContent = "編集";
     editButton.className = "ghost";
@@ -470,6 +464,120 @@ const renderPermissionSets = (portals, permissionSets) => {
       permissionHelper.textContent = "";
       switchTab("permission");
     });
+    return editButton;
+  };
+
+  const buildPermissionRemoveButton = (permission) => {
+    const removeButton = document.createElement("button");
+    removeButton.textContent = "削除";
+    removeButton.className = "danger";
+    removeButton.addEventListener("click", async () => {
+      const currentPermissionSets = await getPermissionSets();
+      const next = currentPermissionSets.filter(
+        (p) =>
+          !(
+            p.portalUrl === permission.portalUrl &&
+            p.accountId === permission.accountId &&
+            p.roleName === permission.roleName
+          ),
+      );
+      await savePermissionSets(next);
+      if (currentPermissionEditKey && isSamePermission(permission, currentPermissionEditKey)) {
+        resetPermissionForm();
+      }
+      renderPermissionSets(portals, next);
+      renderPortals(portals, next);
+    });
+    return removeButton;
+  };
+
+  if (isOptionsView) {
+    const grouped = new Map();
+    permissionSets.forEach((permission) => {
+      const list = grouped.get(permission.portalUrl) ?? [];
+      list.push(permission);
+      grouped.set(permission.portalUrl, list);
+    });
+
+    const orderedPortalUrls = [
+      ...portals.map((portal) => portal.url),
+      ...Array.from(grouped.keys()).filter((url) => !portalMap.has(url)),
+    ];
+
+    orderedPortalUrls.forEach((portalUrl) => {
+      const portalPermissions = grouped.get(portalUrl);
+      if (!portalPermissions || portalPermissions.length === 0) {
+        return;
+      }
+
+      const item = document.createElement("li");
+      item.className = "permission-group";
+
+      const meta = document.createElement("div");
+      meta.className = "permission-meta";
+
+      const title = document.createElement("span");
+      title.className = "permission-title";
+      title.textContent = portalMap.get(portalUrl) ?? "未登録ポータル";
+
+      meta.append(title);
+
+      const list = document.createElement("div");
+      list.className = "permission-group-list";
+
+      portalPermissions.forEach((permission) => {
+        const entry = document.createElement("div");
+        entry.className = "permission-entry";
+
+        const text = document.createElement("div");
+        text.className = "permission-entry-text";
+        const displayAccountName = permission.accountName || permission.accountId;
+
+        const entryTitle = document.createElement("div");
+        entryTitle.className = "permission-entry-title";
+        entryTitle.textContent = `${displayAccountName} / ${permission.roleName}`;
+
+        const entrySubtitle = document.createElement("div");
+        entrySubtitle.className = "permission-entry-subtitle";
+        entrySubtitle.textContent = `アカウントID: ${permission.accountId}`;
+
+        text.append(entryTitle, entrySubtitle);
+
+        if (permission.note) {
+          const note = document.createElement("div");
+          note.className = "permission-entry-note";
+          note.textContent = permission.note;
+          text.append(note);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "permission-actions";
+        actions.append(buildPermissionEditButton(permission), buildPermissionRemoveButton(permission));
+
+        entry.append(text, actions);
+        list.append(entry);
+      });
+
+      item.append(meta, list);
+      permissionList.append(item);
+    });
+    return;
+  }
+
+  permissionSets.forEach((permission) => {
+    const item = document.createElement("li");
+    item.className = "permission-item";
+
+    const meta = document.createElement("div");
+    meta.className = "permission-meta";
+
+    const title = document.createElement("span");
+    title.className = "permission-title";
+    title.textContent = portalMap.get(permission.portalUrl) ?? "未登録ポータル";
+
+    const actions = document.createElement("div");
+    actions.className = "permission-actions";
+    actions.append(buildPermissionEditButton(permission));
 
     const consoleButton = document.createElement("button");
     consoleButton.textContent = "コンソール";
@@ -479,26 +587,8 @@ const renderPermissionSets = (portals, permissionSets) => {
         url: buildConsoleUrl(permission.portalUrl, permission.accountId, permission.roleName),
       });
     });
+    actions.append(consoleButton, buildPermissionRemoveButton(permission));
 
-    const removeButton = document.createElement("button");
-    removeButton.textContent = "削除";
-    removeButton.className = "danger";
-    removeButton.addEventListener("click", async () => {
-      const currentPermissionSets = await getPermissionSets();
-      const next = currentPermissionSets.filter((p) => 
-        !(p.portalUrl === permission.portalUrl && 
-          p.accountId === permission.accountId && 
-          p.roleName === permission.roleName)
-      );
-      await savePermissionSets(next);
-      if (currentPermissionEditKey && isSamePermission(permission, currentPermissionEditKey)) {
-        resetPermissionForm();
-      }
-      renderPermissionSets(portals, next);
-      renderPortals(portals, next);
-    });
-
-    actions.append(editButton, consoleButton, removeButton);
     meta.append(title, actions);
 
     const subtitle = document.createElement("div");
