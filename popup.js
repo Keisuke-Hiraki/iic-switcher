@@ -6,6 +6,7 @@ const portalUrlInput = document.getElementById("portal-url");
 const formHelper = document.getElementById("form-helper");
 const portalList = document.getElementById("portal-list");
 const portalCount = document.getElementById("portal-count");
+const toggleReorderButton = document.getElementById("toggle-reorder");
 const emptyState = document.getElementById("empty-state");
 const openAllButton = document.getElementById("open-all");
 const tabList = document.getElementById("tab-list");
@@ -20,11 +21,13 @@ const formTitle = document.getElementById("form-title");
 const submitButton = document.getElementById("submit-button");
 const cancelEditButton = document.getElementById("cancel-edit");
 const permissionForm = document.getElementById("permission-form");
+const permissionTitle = document.getElementById("permission-title");
 const permissionPortalSelect = document.getElementById("permission-portal");
 const permissionAccountInput = document.getElementById("permission-account");
 const permissionRoleInput = document.getElementById("permission-role");
 const permissionSubmitButton = document.getElementById("permission-submit");
 const permissionClearButton = document.getElementById("permission-clear");
+const permissionCancelButton = document.getElementById("permission-cancel");
 const permissionHelper = document.getElementById("permission-helper");
 const permissionList = document.getElementById("permission-list");
 const permissionEmpty = document.getElementById("permission-empty");
@@ -38,6 +41,8 @@ const exportHelper = document.getElementById("export-helper");
 
 let currentEditIndex = null;
 let currentEditUrl = null;
+let isReorderMode = false;
+let currentPermissionEditKey = null;
 
 const normalizePortals = (raw) =>
   (Array.isArray(raw) ? raw : []).map((portal) => ({
@@ -160,6 +165,11 @@ const buildConsoleUrl = (portalUrl, accountId, roleName) => {
     return "";
   }
 };
+
+const isSamePermission = (left, right) =>
+  left.portalUrl === right.portalUrl &&
+  left.accountId === right.accountId &&
+  left.roleName === right.roleName;
 
 const parsePortals = (raw) => {
   const portals = [];
@@ -293,6 +303,44 @@ const renderPortals = (portals, permissionSets) => {
       updatePortalSelect(next);
     });
 
+    if (isReorderMode) {
+      const moveUpButton = document.createElement("button");
+      moveUpButton.textContent = "上へ";
+      moveUpButton.className = "ghost";
+      moveUpButton.disabled = index === 0;
+      moveUpButton.addEventListener("click", async () => {
+        if (index === 0) {
+          return;
+        }
+        const next = [...portals];
+        const [moved] = next.splice(index, 1);
+        next.splice(index - 1, 0, moved);
+        await savePortals(next);
+        renderPortals(next, permissionSets);
+        renderPermissionSets(next, permissionSets);
+        updatePortalSelect(next);
+      });
+
+      const moveDownButton = document.createElement("button");
+      moveDownButton.textContent = "下へ";
+      moveDownButton.className = "ghost";
+      moveDownButton.disabled = index === portals.length - 1;
+      moveDownButton.addEventListener("click", async () => {
+        if (index === portals.length - 1) {
+          return;
+        }
+        const next = [...portals];
+        const [moved] = next.splice(index, 1);
+        next.splice(index + 1, 0, moved);
+        await savePortals(next);
+        renderPortals(next, permissionSets);
+        renderPermissionSets(next, permissionSets);
+        updatePortalSelect(next);
+      });
+
+      actions.append(moveUpButton, moveDownButton);
+    }
+
     actions.append(loginButton, consoleButton, editButton, removeButton);
     meta.append(name, actions);
 
@@ -357,6 +405,25 @@ const renderPermissionSets = (portals, permissionSets) => {
     const actions = document.createElement("div");
     actions.className = "permission-actions";
 
+    const editButton = document.createElement("button");
+    editButton.textContent = "編集";
+    editButton.className = "ghost";
+    editButton.addEventListener("click", () => {
+      currentPermissionEditKey = {
+        portalUrl: permission.portalUrl,
+        accountId: permission.accountId,
+        roleName: permission.roleName,
+      };
+      permissionTitle.textContent = "許可セットを編集";
+      permissionSubmitButton.textContent = "更新";
+      permissionCancelButton.hidden = false;
+      permissionPortalSelect.value = permission.portalUrl;
+      permissionAccountInput.value = permission.accountId;
+      permissionRoleInput.value = permission.roleName;
+      permissionHelper.textContent = "";
+      switchTab("permission");
+    });
+
     const consoleButton = document.createElement("button");
     consoleButton.textContent = "コンソール";
     consoleButton.className = "ghost";
@@ -377,11 +444,14 @@ const renderPermissionSets = (portals, permissionSets) => {
           p.roleName === permission.roleName)
       );
       await savePermissionSets(next);
+      if (currentPermissionEditKey && isSamePermission(permission, currentPermissionEditKey)) {
+        resetPermissionForm();
+      }
       renderPermissionSets(portals, next);
       renderPortals(portals, next);
     });
 
-    actions.append(consoleButton, removeButton);
+    actions.append(editButton, consoleButton, removeButton);
     meta.append(title, actions);
 
     const subtitle = document.createElement("div");
@@ -442,6 +512,15 @@ const switchTab = (target) => {
   panelForm.hidden = !isForm;
   panelPermission.hidden = !isPermission;
   panelImport.hidden = !isImport;
+
+  if (!isList && isReorderMode) {
+    isReorderMode = false;
+    toggleReorderButton.classList.remove("is-active");
+    toggleReorderButton.textContent = "並び替え";
+    Promise.all([getPortals(), getPermissionSets()]).then(([portals, permissionSets]) => {
+      renderPortals(portals, permissionSets);
+    });
+  }
 };
 
 const resetForm = () => {
@@ -459,6 +538,10 @@ const resetPermissionForm = () => {
   permissionRoleInput.value = "";
   permissionAccountInput.value = "";
   permissionHelper.textContent = "";
+  permissionTitle.textContent = "許可セットを追加";
+  permissionSubmitButton.textContent = "追加";
+  permissionCancelButton.hidden = true;
+  currentPermissionEditKey = null;
   if (!permissionPortalSelect.disabled) {
     permissionPortalSelect.selectedIndex = 0;
   }
@@ -576,30 +659,50 @@ permissionForm.addEventListener("submit", async (event) => {
     accountId: accountId.trim(),
     roleName: roleName.trim(),
   };
-  const duplicate = permissionSets.some(
-    (permission) =>
-      permission.portalUrl === trimmedPermission.portalUrl &&
-      permission.accountId === trimmedPermission.accountId &&
-      permission.roleName === trimmedPermission.roleName,
-  );
+  const isEditing = currentPermissionEditKey !== null;
+  const duplicate = permissionSets.some((permission) => {
+    if (!isSamePermission(permission, trimmedPermission)) {
+      return false;
+    }
+    return !isEditing || !isSamePermission(permission, currentPermissionEditKey);
+  });
 
   if (duplicate) {
     permissionHelper.textContent = "同じ許可セットが既に登録されています。";
     return;
   }
 
-  const nextPermissionSets = [trimmedPermission, ...permissionSets];
+  let nextPermissionSets = [];
+  if (isEditing) {
+    const index = permissionSets.findIndex((permission) =>
+      isSamePermission(permission, currentPermissionEditKey),
+    );
+    if (index === -1) {
+      nextPermissionSets = [trimmedPermission, ...permissionSets];
+    } else {
+      nextPermissionSets = [...permissionSets];
+      nextPermissionSets[index] = trimmedPermission;
+    }
+  } else {
+    nextPermissionSets = [trimmedPermission, ...permissionSets];
+  }
   await savePermissionSets(nextPermissionSets);
 
   const portals = await getPortals();
   renderPermissionSets(portals, nextPermissionSets);
   renderPortals(portals, nextPermissionSets);
 
-  permissionRoleInput.value = "";
-  permissionHelper.textContent = "追加しました。";
+  resetPermissionForm();
+  permissionHelper.textContent = isEditing ? "更新しました。" : "追加しました。";
 });
 
 permissionClearButton.addEventListener("click", () => {
+  permissionRoleInput.value = "";
+  permissionAccountInput.value = "";
+  permissionHelper.textContent = "";
+});
+
+permissionCancelButton.addEventListener("click", () => {
   resetPermissionForm();
 });
 
@@ -685,6 +788,15 @@ tabImport.addEventListener("click", () => {
 cancelEditButton.addEventListener("click", () => {
   resetForm();
   switchTab("list");
+});
+toggleReorderButton.addEventListener("click", async () => {
+  isReorderMode = !isReorderMode;
+  toggleReorderButton.classList.toggle("is-active", isReorderMode);
+  toggleReorderButton.textContent = isReorderMode ? "並び替え中" : "並び替え";
+  const [portals, permissionSets] = await Promise.all([getPortals(), getPermissionSets()]);
+  renderPortals(portals, permissionSets);
+  renderPermissionSets(portals, permissionSets);
+  updatePortalSelect(portals);
 });
 
 Promise.all([getPortals(), getPermissionSets()]).then(([portals, permissionSets]) => {
