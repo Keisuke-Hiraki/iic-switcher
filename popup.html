@@ -11,22 +11,20 @@
       <header class="header">
         <div>
           <h1>IIC Switcher</h1>
-          <p>IAM Identity Centerのアクセスポータルへ素早くログイン。</p>
         </div>
-        <button class="ghost" id="open-all" type="button">全て開く</button>
       </header>
 
-      <nav class="tabs" role="tablist" aria-label="ポータル操作">
-        <button class="tab-button is-active" id="tab-list" role="tab" aria-selected="true" type="button">
+      <nav class="navbar" role="tablist" aria-label="ポータル操作">
+        <button class="navbar-item is-active" id="tab-list" role="tab" aria-selected="true" type="button">
           登録済み
         </button>
-        <button class="tab-button" id="tab-add" role="tab" aria-selected="false" type="button">
+        <button class="navbar-item" id="tab-add" role="tab" aria-selected="false" type="button">
           追加・編集
         </button>
-        <button class="tab-button" id="tab-permission" role="tab" aria-selected="false" type="button">
+        <button class="navbar-item" id="tab-permission" role="tab" aria-selected="false" type="button">
           許可セット
         </button>
-        <button class="tab-button" id="tab-import" role="tab" aria-selected="false" type="button">
+        <button class="navbar-item" id="tab-import" role="tab" aria-selected="false" type="button">
           インポート/エクスポート
         </button>
       </nav>
@@ -86,8 +84,16 @@
             />
           </label>
           <label>
+            アカウント名
+            <input id="permission-account-name" name="accountName" placeholder="例: production" required />
+          </label>
+          <label>
             許可セット名
             <input id="permission-role" name="roleName" placeholder="例: AdministratorAccess" required />
+          </label>
+          <label>
+            メモ (任意)
+            <textarea id="permission-note" name="note" placeholder="例: 会計チームのみ利用"></textarea>
           </label>
           <div class="form-actions">
             <button type="submit" id="permission-submit">追加</button>
@@ -110,7 +116,7 @@
             <h3>JSONインポート</h3>
             <textarea
               id="import-json"
-              placeholder='{"portals":[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start"}],"permissionSets":[{"portalUrl":"https://d-xxxxx.awsapps.com/start","accountId":"123456789012","roleName":"Admin"}]}'
+              placeholder='{"portals":[{"name":"本番","url":"https://d-xxxxx.awsapps.com/start"}],"permissionSets":[{"portalUrl":"https://d-xxxxx.awsapps.com/start","accountId":"123456789012","accountName":"production","roleName":"Admin","note":"会計チーム"}]}'
             ></textarea>
             <button type="button" id="import-button">インポート</button>
             <p class="helper" id="import-helper" role="alert"></p>

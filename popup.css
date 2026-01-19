@@ -40,32 +40,36 @@ body {
   gap: 12px;
 }
 
-.tabs {
+.navbar {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  background: var(--card);
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 16px rgba(36, 44, 75, 0.08);
 }
 
-.tab-button {
+.navbar-item {
   flex: 1;
-  border-radius: 999px;
+  border-radius: 10px;
   border: 1px solid transparent;
-  background: #eef1ff;
-  color: var(--primary-dark);
-  padding: 6px 10px;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 10px;
   font-size: 12px;
   font-weight: 600;
 }
 
-.tab-button.is-active {
+.navbar-item.is-active {
   background: var(--primary);
   color: white;
 }
 
-.tab-button:hover {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary-dark);
+.navbar-item:hover {
+  color: var(--text);
+  border-color: var(--border);
+  background: #eef1ff;
 }
 
 .header h1 {
@@ -301,6 +305,16 @@ input:focus {
   color: var(--text);
 }
 
+.portal-permission-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.portal-permission-note {
+  color: var(--muted);
+}
+
 .portal-permission-item button {
   padding: 4px 8px;
   font-size: 11px;
@@ -381,6 +395,12 @@ input:focus {
 }
 
 .permission-subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.permission-note {
   font-size: 11px;
   color: var(--muted);
   word-break: break-word;
