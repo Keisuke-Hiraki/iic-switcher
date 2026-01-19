@@ -182,17 +182,17 @@ const isSamePermission = (left, right) =>
   left.roleName === right.roleName;
 
 const comparePermissionSets = (left, right) => {
-  const leftDisplay = left.accountName || left.accountId;
-  const rightDisplay = right.accountName || right.accountId;
+  const leftDisplay = left.accountName || left.accountId || "";
+  const rightDisplay = right.accountName || right.accountId || "";
   const displayComparison = leftDisplay.localeCompare(rightDisplay, "en", { sensitivity: "base" });
   if (displayComparison !== 0) {
     return displayComparison;
   }
-  const roleComparison = left.roleName.localeCompare(right.roleName, "en", { sensitivity: "base" });
+  const roleComparison = (left.roleName || "").localeCompare(right.roleName || "", "en", { sensitivity: "base" });
   if (roleComparison !== 0) {
     return roleComparison;
   }
-  return left.accountId.localeCompare(right.accountId, "en", { sensitivity: "base" });
+  return (left.accountId || "").localeCompare(right.accountId || "", "en", { sensitivity: "base" });
 };
 
 const parsePortals = (raw) => {
