@@ -15,6 +15,10 @@
   font-family: "Inter", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -232,6 +236,29 @@ input:focus {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: #fafbff;
+}
+
+.portal-item.is-draggable {
+  cursor: grab;
+}
+
+.portal-item.is-dragging {
+  opacity: 0.6;
+  cursor: grabbing;
+}
+
+.portal-drag-handle {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.portal-drag-handle:hover {
+  background: #eef1ff;
+  color: var(--text);
 }
 
 .portal-meta {

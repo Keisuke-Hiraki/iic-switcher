@@ -43,6 +43,7 @@ let currentEditIndex = null;
 let currentEditUrl = null;
 let isReorderMode = false;
 let currentPermissionEditKey = null;
+let draggedPortalIndex = null;
 
 const normalizePortals = (raw) =>
   (Array.isArray(raw) ? raw : []).map((portal) => ({
@@ -249,6 +250,37 @@ const renderPortals = (portals, permissionSets) => {
   portals.forEach((portal, index) => {
     const item = document.createElement("li");
     item.className = "portal-item";
+    if (isReorderMode) {
+      item.classList.add("is-draggable");
+      item.setAttribute("draggable", "true");
+      item.addEventListener("dragstart", (event) => {
+        draggedPortalIndex = index;
+        item.classList.add("is-dragging");
+        event.dataTransfer.effectAllowed = "move";
+      });
+      item.addEventListener("dragend", () => {
+        draggedPortalIndex = null;
+        item.classList.remove("is-dragging");
+      });
+      item.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      });
+      item.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        if (draggedPortalIndex === null || draggedPortalIndex === index) {
+          return;
+        }
+        const next = [...portals];
+        const [moved] = next.splice(draggedPortalIndex, 1);
+        const targetIndex = draggedPortalIndex < index ? index - 1 : index;
+        next.splice(targetIndex, 0, moved);
+        await savePortals(next);
+        renderPortals(next, permissionSets);
+        renderPermissionSets(next, permissionSets);
+        updatePortalSelect(next);
+      });
+    }
 
     const meta = document.createElement("div");
     meta.className = "portal-meta";
@@ -304,41 +336,17 @@ const renderPortals = (portals, permissionSets) => {
     });
 
     if (isReorderMode) {
-      const moveUpButton = document.createElement("button");
-      moveUpButton.textContent = "上へ";
-      moveUpButton.className = "ghost";
-      moveUpButton.disabled = index === 0;
-      moveUpButton.addEventListener("click", async () => {
-        if (index === 0) {
-          return;
-        }
-        const next = [...portals];
-        const [moved] = next.splice(index, 1);
-        next.splice(index - 1, 0, moved);
-        await savePortals(next);
-        renderPortals(next, permissionSets);
-        renderPermissionSets(next, permissionSets);
-        updatePortalSelect(next);
+      const dragHandle = document.createElement("button");
+      dragHandle.type = "button";
+      dragHandle.textContent = "ドラッグで移動";
+      dragHandle.className = "portal-drag-handle";
+      dragHandle.addEventListener("mousedown", (event) => {
+        event.preventDefault();
       });
-
-      const moveDownButton = document.createElement("button");
-      moveDownButton.textContent = "下へ";
-      moveDownButton.className = "ghost";
-      moveDownButton.disabled = index === portals.length - 1;
-      moveDownButton.addEventListener("click", async () => {
-        if (index === portals.length - 1) {
-          return;
-        }
-        const next = [...portals];
-        const [moved] = next.splice(index, 1);
-        next.splice(index + 1, 0, moved);
-        await savePortals(next);
-        renderPortals(next, permissionSets);
-        renderPermissionSets(next, permissionSets);
-        updatePortalSelect(next);
+      dragHandle.addEventListener("touchstart", (event) => {
+        event.preventDefault();
       });
-
-      actions.append(moveUpButton, moveDownButton);
+      actions.append(dragHandle);
     }
 
     actions.append(loginButton, consoleButton, editButton, removeButton);
