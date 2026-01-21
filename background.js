@@ -1,6 +1,6 @@
 chrome.action.onClicked.addListener(() => {
   chrome.action.setPopup({ popup: "popup.html" }, () => {
-    const openError = chrome.runtime.lastError;
+    const setPopupError = chrome.runtime.lastError;
     if (openError) {
       chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
       return;
