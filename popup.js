@@ -110,7 +110,8 @@ const validatePortalUrl = (url) => {
       return "URLはhttpsで始まる必要があります。";
     }
     const pattern = /^[a-z0-9-]+\.awsapps\.com$/;
-    if (!pattern.test(parsed.hostname) || parsed.pathname !== "/start") {
+    const pathname = parsed.pathname;
+    if (!pattern.test(parsed.hostname) || (pathname !== "/start" && pathname !== "/start/")) {
       return "URLはhttps://*.awsapps.com/startの形式で入力してください。";
     }
   } catch (error) {
@@ -119,7 +120,7 @@ const validatePortalUrl = (url) => {
   return "";
 };
 
-const validatePortal = (name, url, accountId, roleName) => {
+const validatePortal = (name, url, accountId = "", roleName = "") => {
   if (!name.trim()) {
     return "表示名を入力してください。";
   }
