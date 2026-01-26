@@ -56,7 +56,7 @@ https://d-xxxxx.awsapps.com/start
 
 ## メモ
 
-- 登録データは Chrome の同期ストレージ（`chrome.storage.sync`）に保存されます。
+- 登録データは Chrome の同期ストレージ（`chrome.storage.sync`）に保存されますが、許可セットが上限を超えた場合は許可セットのみローカルストレージ（`chrome.storage.local`）に保存されます。
 - URL は `https://*.awsapps.com/start` の形式のみ登録できます。
 - 誤った URL を入力するとエラーメッセージが表示されます。
 - 許可セットの登録には 12 桁のアカウント ID が必要です。

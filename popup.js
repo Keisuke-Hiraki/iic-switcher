@@ -67,6 +67,10 @@ const normalizePermissionSets = (raw) =>
     note: String(entry?.note ?? "").trim(),
   }));
 
+const isQuotaError = (message) =>
+  typeof message === "string" &&
+  (message.includes("QUOTA_BYTES_PER_ITEM") || message.includes("kQuotaBytesPerItem"));
+
 const getPortals = () =>
   new Promise((resolve) => {
     chrome.storage.sync.get([STORAGE_KEY_PORTALS], (result) => {
@@ -87,18 +91,58 @@ const savePortals = (portals) =>
 
 const getPermissionSets = () =>
   new Promise((resolve) => {
-    chrome.storage.sync.get([STORAGE_KEY_PERMISSION_SETS], (result) => {
-      resolve(normalizePermissionSets(result[STORAGE_KEY_PERMISSION_SETS]));
+    chrome.storage.local.get([STORAGE_KEY_PERMISSION_SETS], (localResult) => {
+      const localPermissionSets = normalizePermissionSets(localResult[STORAGE_KEY_PERMISSION_SETS]);
+      if (localPermissionSets.length > 0) {
+        resolve(localPermissionSets);
+        return;
+      }
+      chrome.storage.sync.get([STORAGE_KEY_PERMISSION_SETS], (syncResult) => {
+        resolve(normalizePermissionSets(syncResult[STORAGE_KEY_PERMISSION_SETS]));
+      });
     });
   });
 
 const savePermissionSets = (permissionSets) =>
   new Promise((resolve, reject) => {
+    if (permissionSets.length === 0) {
+      chrome.storage.sync.remove([STORAGE_KEY_PERMISSION_SETS], () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        chrome.storage.local.remove([STORAGE_KEY_PERMISSION_SETS], () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          resolve({ storage: "sync" });
+        });
+      });
+      return;
+    }
     chrome.storage.sync.set({ [STORAGE_KEY_PERMISSION_SETS]: permissionSets }, () => {
       if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
+        const message = chrome.runtime.lastError.message;
+        if (isQuotaError(message)) {
+          chrome.storage.local.set({ [STORAGE_KEY_PERMISSION_SETS]: permissionSets }, () => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+              return;
+            }
+            resolve({ storage: "local", reason: "quota" });
+          });
+          return;
+        }
+        reject(new Error(message));
       } else {
-        resolve();
+        chrome.storage.local.remove([STORAGE_KEY_PERMISSION_SETS], () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          resolve({ storage: "sync" });
+        });
       }
     });
   });
@@ -196,6 +240,11 @@ const comparePermissionSets = (left, right) => {
   }
   return (left.accountId || "").localeCompare(right.accountId || "", "en", { sensitivity: "base" });
 };
+
+const buildPermissionStorageNote = (result) =>
+  result?.storage === "local"
+    ? "同期ストレージ容量上限に達したため、許可セットのみローカルに保存しました。"
+    : "";
 
 const parsePortals = (raw) => {
   const portals = [];
@@ -859,14 +908,16 @@ if (permissionForm) {
     } else {
       nextPermissionSets = [trimmedPermission, ...permissionSets];
     }
-    await savePermissionSets(nextPermissionSets);
+    const saveResult = await savePermissionSets(nextPermissionSets);
 
     const portals = await getPortals();
     renderPermissionSets(portals, nextPermissionSets);
     renderPortals(portals, nextPermissionSets);
 
     resetPermissionForm();
-    permissionHelper.textContent = isEditing ? "更新しました。" : "追加しました。";
+    const statusMessage = isEditing ? "更新しました。" : "追加しました。";
+    const storageNote = buildPermissionStorageNote(saveResult);
+    permissionHelper.textContent = storageNote ? `${statusMessage} ${storageNote}` : statusMessage;
   });
 }
 
@@ -926,7 +977,10 @@ if (importButton) {
 
       try {
         await savePortals(mergedPortals);
-        await savePermissionSets(mergedPermissionSets);
+        const saveResult = await savePermissionSets(mergedPermissionSets);
+        const storageNote = buildPermissionStorageNote(saveResult);
+        const baseMessage = `${portals.length}件のポータルと${permissionSets.length}件の許可セットを追加しました。`;
+        importHelper.textContent = storageNote ? `${baseMessage} ${storageNote}` : baseMessage;
       } catch (error) {
         importHelper.textContent = "ストレージ容量の上限を超えたため、インポートに失敗しました。";
         return;
@@ -934,7 +988,6 @@ if (importButton) {
       renderPortals(mergedPortals, mergedPermissionSets);
       renderPermissionSets(mergedPortals, mergedPermissionSets);
       updatePortalSelect(mergedPortals);
-      importHelper.textContent = `${portals.length}件のポータルと${permissionSets.length}件の許可セットを追加しました。`;
       importTextArea.value = "";
     } catch (error) {
       importHelper.textContent = "JSON形式が正しくありません。";
